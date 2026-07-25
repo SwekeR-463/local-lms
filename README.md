@@ -100,8 +100,9 @@ scripts/validate.sh --accepted
 Or run the winning 131k configuration directly:
 
 ```bash
-/home/sweker/work/local=lm/.cache/llama-cpp-turboquant/build/bin/llama-server \
-  -m /home/sweker/work/local=lm/models/KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf \
+# Paths are relative — run from the project root
+./.cache/llama-cpp-turboquant/build/bin/llama-server \
+  -m ./models/KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf \
   --host 127.0.0.1 --port 8000 \
   --ctx-size 131072 \
   --threads 8 --threads-batch 12 \
@@ -110,8 +111,14 @@ Or run the winning 131k configuration directly:
   --ubatch-size 512 --batch-size 512 \
   --n-cpu-moe 32 \
   --seed 42 \
+  --alias kat-coder \
   -ngl 99 -fa on --jinja --metrics
 ```
+
+> **Remote access (e.g., from OpenCode on another machine):**
+> Change `--host 127.0.0.1` to `--host 0.0.0.0` so the server listens on all
+> interfaces. Then point OpenCode at `http://<laptop-ip>:8000/v1`.
+> The laptop IP: `hostname -I | awk '{print $1}'`
 
 Then test:
 
