@@ -40,6 +40,22 @@ The **131,072-token** preferred context is achievable. The winning configuration
 
 The 65,536-token accepted fallback uses the same settings and fits comfortably (~5.4 GiB RSS, ~4.7 GiB VRAM).
 
+### Performance graphs
+
+![Memory scaling and throughput across context sizes](results/plots/full_comparison.png)
+
+**Memory vs context** (q8_0/turbo3, n-cpu-moe=32):
+
+![Context vs VRAM and RSS](results/plots/context_vs_memory.png)
+
+**Throughput vs context:**
+
+![Context vs prompt throughput](results/plots/context_vs_throughput.png)
+
+**KV cache type comparison at 65k** (turbo3 saves ~0.7 GiB VRAM and ~3.6 GiB RSS vs turbo4):
+
+![KV cache comparison](results/plots/kv_cache_comparison.png)
+
 ## Start here
 
 Run diagnostics without downloading anything:
