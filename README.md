@@ -122,3 +122,7 @@ Generated logs and machine-readable results are under `results/`. The handoff hi
 The tuner tests increasing context sizes and asymmetric KV settings, beginning with `q8_0/turbo4`. It only accepts a candidate when the server responds, memory remains within safety margins, and no CUDA/runtime error occurs. It prefers the highest stable context, then throughput. It does not silently enable swap, symmetric aggressive K-cache compression, speculative decoding, or undocumented flags.
 
 Use `--dry-run` to inspect the candidate matrix without launching models. Use `--quick` for the initial smoke search and `--resume` to reuse an existing result directory.
+
+---
+
+Built together using GPT-5.6 — Luna ($2.93) and DeepSeek V4 Pro ($0.15) in OpenCode.
