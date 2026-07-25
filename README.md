@@ -111,7 +111,7 @@ Or run the winning 131k configuration directly:
   --ubatch-size 512 --batch-size 512 \
   --n-cpu-moe 32 \
   --seed 42 \
-  --alias kat-coder \
+  --chat-template chatml\
   -ngl 99 -fa on --jinja --metrics
 ```
 
