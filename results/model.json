@@ -1,0 +1,11 @@
+{
+  "repository": "mudler/KAT-Coder-V2.5-Dev-APEX-GGUF",
+  "profile": "I-Mini",
+  "filename": "KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf",
+  "path": "/home/sweker/work/local=lm/models/KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf",
+  "bytes": 13467211136,
+  "advertised_bytes": 13467211136,
+  "sha256": "<redacted>",
+  "advertised_sha256": "",
+  "downloaded_at": "2026-07-25T08:27:48+05:30"
+}

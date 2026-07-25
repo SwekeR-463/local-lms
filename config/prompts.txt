@@ -1,0 +1,15 @@
+# Synthetic data generation prompts - one per line, # for comments
+# Coding prompts
+Write a Python function that merges two sorted lists without using built-in sort.
+Write a bash script to recursively find all files modified in the last 24 hours.
+Write a Rust function that safely parses a CSV line with quoted fields.
+Write a SQL query to find the top 5 customers by total purchase amount.
+Write a Python async function that fetches data from 3 APIs concurrently.
+Write a JavaScript function to deep-clone an object handling circular references.
+Write a Go HTTP server that implements rate limiting per IP.
+Write a Python decorator that retries a function on exception with exponential backoff.
+Write a Terraform module for deploying a stateless web service on AWS.
+Write a Dockerfile for a multi-stage Python build optimizing for size.
+Write a Python script using asyncio to batch-process 1000 files.
+Write a regex pattern that validates IPv6 addresses.
+Write a Python implementation of a Least Recently Used (LRU) cache.

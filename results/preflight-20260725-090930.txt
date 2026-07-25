@@ -1,0 +1,27 @@
+[2026-07-25 09:09:30] Starting preflight
+[2026-07-25 09:09:30] Project: /home/sweker/work/local=lm
+[2026-07-25 09:09:30] Config: /home/sweker/work/local=lm/config/default.env
+[2026-07-25 09:09:30] command ok: cmake (/usr/bin/cmake)
+[2026-07-25 09:09:30] command ok: git (/usr/bin/git)
+[2026-07-25 09:09:30] command ok: curl (/usr/bin/curl)
+[2026-07-25 09:09:30] command ok: awk (/usr/bin/awk)
+[2026-07-25 09:09:30] command ok: sed (/usr/bin/sed)
+[2026-07-25 09:09:30] command ok: timeout (/usr/bin/timeout)
+[2026-07-25 09:09:30] command ok: jq (/usr/bin/jq)
+[2026-07-25 09:09:30] compiler: g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+[2026-07-25 09:09:30] OS: Linux 6.17.0-35-generic x86_64
+[2026-07-25 09:09:30] CPU: 13th Gen Intel(R) Core(TM) i5-13420H
+[2026-07-25 09:09:30] CPU threads: 12
+[2026-07-25 09:09:30] RAM: 15Gi total, 10Gi available
+[2026-07-25 09:09:30] Disk: 142G free on /dev/nvme0n1p5
+[2026-07-25 09:09:30] NUMA: 1
+[2026-07-25 09:09:30] WARNING: NVIDIA PCI device/tool exists but nvidia-smi failed: NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
+[2026-07-25 09:09:30] Swap: active
+[2026-07-25 09:09:30] WARNING: swap is active; this run is diagnostic only
+Cannot open netlink socket: Operation not permitted
+[2026-07-25 09:09:30] Port 127.0.0.1:8000: available
+[2026-07-25 09:09:30] Model: /home/sweker/work/local=lm/models/KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf (13G)
+[2026-07-25 09:09:30] Available RAM: 11G
+[2026-07-25 09:09:30] WARNING: model file is larger than currently available RAM; GPU offload may reduce CPU residency, but this is high risk
+[2026-07-25 09:09:30] WARNING: server binary not found yet
+[2026-07-25 09:09:30] Preflight complete: /home/sweker/work/local=lm/results/preflight-20260725-090930.txt

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/common.sh"
+load_optional_config "${PROJECT_DIR}/config/runtime.env"
+load_optional_config "${PROJECT_DIR}/config/model.env"
+load_optional_config "${PROJECT_DIR}/config/selected.env"
+
+FOREGROUND=0
+while (($#)); do
+    case "$1" in
+        --foreground) FOREGROUND=1 ;;
+        --skip-preflight) SKIP_PREFLIGHT=1 ;;
+        -h|--help)
+            printf '%s\n' 'Usage: scripts/run.sh [--foreground] [--skip-preflight]'
+            exit 0
+            ;;
+        *) die "unknown option: $1" ;;
+    esac
+    shift
+done
+
+SERVER="$(resolve_server_bin)"
+MODEL="$(resolve_model_path)"
+ensure_results_dir
+
+if [[ "${SKIP_PREFLIGHT:-0}" != 1 ]]; then
+    "${SCRIPT_DIR}/preflight.sh"
+fi
+port_is_free "${HOST}" "${PORT}" || die "port ${HOST}:${PORT} is already in use"
+
+HELP="$(server_help "${SERVER}")"
+ARGS=(-m "${MODEL}")
+add_flag_value() {
+    local flag="$1"
+    local value="$2"
+    if has_flag "${HELP}" "${flag}"; then ARGS+=("${flag}" "${value}"); fi
+}
+add_flag_value "--host" "${HOST}"
+add_flag_value "--port" "${PORT}"
+add_flag_value "--ctx-size" "${CTX_SIZE:-${PREFERRED_CONTEXT}}"
+add_flag_value "--threads" "${THREADS:-8}"
+add_flag_value "--threads-batch" "${THREADS_BATCH:-12}"
+add_flag_value "--parallel" "${PARALLEL:-1}"
+add_flag_value "--cache-type-k" "${CACHE_TYPE_K:-q8_0}"
+add_flag_value "--cache-type-v" "${CACHE_TYPE_V:-turbo4}"
+add_flag_value "--ubatch-size" "${UBATCH_SIZE:-512}"
+add_flag_value "--batch-size" "${BATCH_SIZE:-512}"
+add_flag_value "--n-cpu-moe" "${N_CPU_MOE:-32}"
+add_flag_value "--seed" "${SEED:-42}"
+
+if has_flag "${HELP}" "-ngl"; then ARGS+=(-ngl "${GPU_LAYERS:-99}"); fi
+if has_flag "${HELP}" "-fa"; then ARGS+=(-fa on); fi
+if has_flag "${HELP}" "--jinja"; then ARGS+=(--jinja); fi
+if has_flag "${HELP}" "--metrics"; then ARGS+=(--metrics); fi
+
+if [[ "${EXPOSE_NETWORK:-0}" == 1 ]]; then
+    warn "network exposure enabled: ${HOST}:${PORT}"
+fi
+
+PID_FILE="${PROJECT_DIR}/results/server.pid"
+LOG_FILE="${RESULTS_DIR}/server-$(timestamp).log"
+[[ ! -e "${PID_FILE}" ]] || ! pid_is_ours "${PID_FILE}" || die "project server appears to already be running"
+
+log "Launching ${SERVER}"
+log "Model: ${MODEL}"
+log "Context: ${CTX_SIZE:-${PREFERRED_CONTEXT}}, K/V: ${CACHE_TYPE_K:-q8_0}/${CACHE_TYPE_V:-turbo4}"
+log "Log: ${LOG_FILE}"
+
+if ((FOREGROUND)); then
+    exec "${SERVER}" "${ARGS[@]}" 2>&1 | tee "${LOG_FILE}"
+fi
+
+"${SERVER}" "${ARGS[@]}" >"${LOG_FILE}" 2>&1 &
+SERVER_PID=$!
+printf '%s\n' "${SERVER_PID}" >"${PID_FILE}"
+sleep 1
+if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
+    rm -f "${PID_FILE}"
+    die "server exited during startup; inspect ${LOG_FILE}"
+fi
+log "Server started with PID ${SERVER_PID}: http://${HOST}:${PORT}"
+record_log "server started with PID ${SERVER_PID}; log ${LOG_FILE#"${PROJECT_DIR}/"}"

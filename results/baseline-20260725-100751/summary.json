@@ -1,0 +1,11 @@
+{
+  "context": 8192,
+  "cache_type_k": "q8_0",
+  "cache_type_v": "turbo4",
+  "n_cpu_moe": 32,
+  "rss_kb": 7658776,
+  "vram_mb": 4261,
+  "prompt_tps": 5.35,
+  "generation_tps": 7.95,
+  "status": "healthy"
+}

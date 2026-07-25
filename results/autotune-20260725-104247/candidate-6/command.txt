@@ -1,0 +1,1 @@
+/home/sweker/work/local=lm/.cache/llama-cpp-turboquant/build/bin/llama-server -m /home/sweker/work/local=lm/models/KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf --host 127.0.0.1 --port 8000 --ctx-size 32768 --threads 8 --threads-batch 12 --parallel 1 --cache-type-k q8_0 --cache-type-v turbo4 --ubatch-size 512 --batch-size 512 --n-cpu-moe 32 --seed 42 -ngl 99 -fa on --jinja --metrics 
