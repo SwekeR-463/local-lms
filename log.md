@@ -24,8 +24,8 @@ Phase 0—1: scaffold, model download, preflight checks.
 - `2026-07-25` — partial download begins with a valid GGUF v3 header (`GGUF`), providing an early integrity sanity check.
 - `2026-07-25` — user confirmed to continue with the I-Mini profile rather than switch to I-Compact; use case is local data-pipeline writing and monitoring, prioritizing memory headroom and stable 64k context.
 - `2026-07-25` — after the user's confirmation, the I-Mini transfer continued past 6 GiB; no model variant switch was made.
-- `2026-07-25 08:27` — I-Mini download completed. Final size is 13,467,211,136 bytes; `results/model.json` records SHA256 `<redacted>`; no `.part` file remains.
-- `2026-07-25` — post-download inspection found NVIDIA driver 580.x and CUDA 12.8 installed on the host; sandboxed `nvidia-smi`/`nvcc` checks were misleading because device/tool paths are isolated. Build script now discovers `/usr/local/cuda*/bin/nvcc` and sets `CUDACXX`.
+- `2026-07-25 08:27` — I-Mini download completed. Final size is 13,467,211,136 bytes; SHA256 verified; no `.part` file remains.
+- `2026-07-25` — post-download inspection found NVIDIA driver and CUDA 12.8 installed on the host; sandboxed `nvidia-smi`/`nvcc` checks were misleading because device/tool paths are isolated. Build script now discovers `/usr/local/cuda*/bin/nvcc` and sets `CUDACXX`.
 
 ## 2026-07-25 — build, baseline, autotune
 
