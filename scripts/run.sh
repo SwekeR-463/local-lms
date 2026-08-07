@@ -5,9 +5,9 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/common.sh"
-load_optional_config "${PROJECT_DIR}/config/runtime.env"
-load_optional_config "${PROJECT_DIR}/config/model.env"
-load_optional_config "${PROJECT_DIR}/config/selected.env"
+MODEL_ARG=""
+if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
+load_model_profile "${MODEL_ARG}"
 
 FOREGROUND=0
 while (($#)); do
@@ -15,7 +15,7 @@ while (($#)); do
         --foreground) FOREGROUND=1 ;;
         --skip-preflight) SKIP_PREFLIGHT=1 ;;
         -h|--help)
-            printf '%s\n' 'Usage: scripts/run.sh [--foreground] [--skip-preflight]'
+            printf '%s\n' 'Usage: scripts/run.sh [MODEL] [--foreground] [--skip-preflight]'
             exit 0
             ;;
         *) die "unknown option: $1" ;;
@@ -28,7 +28,7 @@ MODEL="$(resolve_model_path)"
 ensure_results_dir
 
 if [[ "${SKIP_PREFLIGHT:-0}" != 1 ]]; then
-    "${SCRIPT_DIR}/preflight.sh"
+    "${SCRIPT_DIR}/preflight.sh" "${MODEL_ID}"
 fi
 port_is_free "${HOST}" "${PORT}" || die "port ${HOST}:${PORT} is already in use"
 
@@ -66,7 +66,7 @@ LOG_FILE="${RESULTS_DIR}/server-$(timestamp).log"
 [[ ! -e "${PID_FILE}" ]] || ! pid_is_ours "${PID_FILE}" || die "project server appears to already be running"
 
 log "Launching ${SERVER}"
-log "Model: ${MODEL}"
+log "Model: ${MODEL_NAME:-${MODEL_ID}} (${MODEL})"
 log "Context: ${CTX_SIZE:-${PREFERRED_CONTEXT}}, K/V: ${CACHE_TYPE_K:-q8_0}/${CACHE_TYPE_V:-$(default_cache_v)}"
 log "Log: ${LOG_FILE}"
 
@@ -83,4 +83,4 @@ if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
     die "server exited during startup; inspect ${LOG_FILE}"
 fi
 log "Server started with PID ${SERVER_PID}: http://${HOST}:${PORT}"
-record_log "server started with PID ${SERVER_PID}; log ${LOG_FILE#"${PROJECT_DIR}/"}"
+record_log "${MODEL_ID}: server started with PID ${SERVER_PID}; log ${LOG_FILE#"${PROJECT_DIR}/"}"

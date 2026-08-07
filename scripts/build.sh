@@ -21,12 +21,12 @@ require_command cmake
 
 SOURCE_DIR="$(project_path "${SOURCE_DIR}")"
 BUILD_DIR="$(project_path "${BUILD_DIR}")"
-REPO_URL="https://github.com/TheTom/llama-cpp-turboquant.git"
+REPO_URL="${TURBOQUANT_REPO:-https://github.com/TheTom/llama-cpp-turboquant.git}"
 REPO_BRANCH="${TURBOQUANT_BRANCH:-feature/turboquant-kv-cache}"
 
 mkdir -p "$(dirname "${SOURCE_DIR}")"
 if [[ ! -d "${SOURCE_DIR}/.git" ]]; then
-    log "Cloning TurboQuant fork (${REPO_BRANCH})"
+    log "Cloning llama.cpp TurboQuant (${REPO_BRANCH})"
     git clone --branch "${REPO_BRANCH}" --depth 1 "${REPO_URL}" "${SOURCE_DIR}"
 else
     log "Using existing TurboQuant source: ${SOURCE_DIR}"
@@ -87,4 +87,4 @@ printf 'BUILD_DIR=%s\n' "${BUILD_DIR}" >>"${PROJECT_DIR}/config/runtime.env"
 printf 'BUILD_COMMIT=%s\n' "$(git -C "${SOURCE_DIR}" rev-parse HEAD)" >>"${PROJECT_DIR}/config/runtime.env"
 
 log "Server built: ${SERVER}"
-record_log "TurboQuant build completed; server recorded in config/runtime.env"
+record_log "llama.cpp TurboQuant build completed; server recorded in config/runtime.env"

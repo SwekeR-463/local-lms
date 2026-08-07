@@ -5,9 +5,9 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/common.sh"
-load_optional_config "${PROJECT_DIR}/config/runtime.env"
-load_optional_config "${PROJECT_DIR}/config/model.env"
-load_optional_config "${PROJECT_DIR}/config/selected.env"
+MODEL_ARG=""
+if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
+load_model_profile "${MODEL_ARG}"
 
 MODE="short"
 case "${1:-}" in
@@ -15,7 +15,7 @@ case "${1:-}" in
     --accepted) MODE=accepted ;;
     --preferred) MODE=preferred ;;
     --quality) MODE=quality ;;
-    -h|--help) printf '%s\n' 'Usage: scripts/validate.sh [--short|--accepted|--preferred|--quality]'; exit 0 ;;
+    -h|--help) printf '%s\n' 'Usage: scripts/validate.sh [MODEL] [--short|--accepted|--preferred|--quality]'; exit 0 ;;
     *) die "unknown validation mode: $1" ;;
 esac
 
@@ -43,7 +43,7 @@ if ((CONTEXT > 8192)); then
     PROMPT="$(head -c "${prompt_chars}" < <(yes 'context validation token; '))"
     PROMPT+=$'\nReturn a short deterministic acknowledgement.'
 else
-    PROMPT="Validate KAT-Coder server output at approximately ${CONTEXT} tokens. Return a short deterministic acknowledgement."
+    PROMPT="Validate ${MODEL_NAME:-${MODEL_ID}} server output at approximately ${CONTEXT} tokens. Return a short deterministic acknowledgement."
 fi
 REQUEST="${RESULTS_DIR}/validation-$(timestamp).json"
 mkdir -p "${RESULTS_DIR}"
@@ -60,4 +60,4 @@ if ! jq -e '(.choices | length > 0) and ((.choices[0].message.content // .choice
 fi
 
 log "${MODE} validation passed at configured context ${CONTEXT}; response: ${RESPONSE}"
-record_log "${MODE} validation passed at context ${CONTEXT}"
+record_log "${MODEL_ID}: ${MODE} validation passed at context ${CONTEXT}"
