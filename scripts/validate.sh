@@ -50,7 +50,7 @@ mkdir -p "${RESULTS_DIR}"
 PROMPT_FILE="${RESULTS_DIR}/validation-prompt-$(timestamp).txt"
 printf '%s' "${PROMPT}" >"${PROMPT_FILE}"
 jq -n --rawfile prompt "${PROMPT_FILE}" --argjson seed "${SEED:-42}" \
-    '{messages:[{role:"user",content:$prompt}],max_tokens:32,temperature:0,seed:$seed}' >"${REQUEST}"
+    '{messages:[{role:"user",content:$prompt}],max_tokens:256,temperature:0,seed:$seed}' >"${REQUEST}"
 RESPONSE="${REQUEST%.json}-response.json"
 curl --fail --silent --show-error -H 'Content-Type: application/json' \
     --data-binary "@${REQUEST}" "http://${HOST}:${PORT}/v1/chat/completions" >"${RESPONSE}"
