@@ -142,3 +142,9 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - I-Mini remains the selected model per user scope. Current configuration: 98,304 context, `q8_0/turbo3`, `n-cpu-moe=0`, `1024/1024`, 10 threads.
 - Raw runs: `results/cpu-moe-run1.json`, `results/cpu-moe-run2.json`. Aggregate: `results/cpu-moe-results.json`. Charts: `results/plots/cpu_moe_generation.png` and `results/plots/cpu_moe_prompt.png`.
 - `README.md` now contains the measured M5 Pro results and charts.
+
+## General-purpose workbench refactor — 2026-08-08
+
+- Refactored the KAT-specific runner into a clean, model-agnostic GGUF workbench while preserving the llama.cpp TurboQuant runtime and KV-cache tuning.
+- Added reusable model profiles, per-model local tuning state, namespaced JSON results, a comparable benchmark command, Pi integration guidance, and contributor instructions in `AGENTS.md`.
+- Retained KAT-Coder as the default profile and added Qwen3.6 35B-A3B and Qwen3.5 27B profiles. Shell syntax, dry-run autotuning, Pi connectivity, and JSON validation passed.
