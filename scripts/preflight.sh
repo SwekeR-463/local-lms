@@ -5,8 +5,9 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/common.sh"
-load_optional_config "${PROJECT_DIR}/config/runtime.env"
-load_optional_config "${PROJECT_DIR}/config/model.env"
+MODEL_ARG=""
+if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
+load_model_profile "${MODEL_ARG}"
 
 ALLOW_MISSING_MODEL=0
 ALLOW_MISSING_RUNTIME=0
@@ -14,7 +15,7 @@ DIAGNOSE=0
 
 usage() {
     cat <<'EOF'
-Usage: scripts/preflight.sh [options]
+Usage: scripts/preflight.sh [MODEL] [options]
 
 Options:
   --allow-missing-model    Check the host before the model is downloaded.
@@ -40,7 +41,7 @@ exec > >(tee "${PREFLIGHT_FILE}") 2>&1
 
 log "Starting preflight"
 log "Project: ${PROJECT_DIR}"
-log "Config: ${CONFIG_FILE}"
+log "Model profile: ${MODEL_ID} (${MODEL_CONFIG})"
 
 required_commands=(cmake git curl awk sed perl)
 for command_name in "${required_commands[@]}"; do

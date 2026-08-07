@@ -5,9 +5,9 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/common.sh"
-load_optional_config "${PROJECT_DIR}/config/runtime.env"
-load_optional_config "${PROJECT_DIR}/config/model.env"
-load_optional_config "${PROJECT_DIR}/config/selected.env"
+MODEL_ARG=""
+if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
+load_model_profile "${MODEL_ARG}"
 
 require_command curl
 require_command jq
@@ -28,7 +28,7 @@ while (($#)); do
         --min-context) shift; MIN_CONTEXT="${1:?missing value for --min-context}" ;;
         --max-context) shift; MAX_CONTEXT="${1:?missing value for --max-context}" ;;
         -h|--help)
-            printf '%s\n' 'Usage: scripts/autotune.sh [--quick] [--cpu-moe-sweep] [--resume] [--dry-run] [--min-context TOKENS] [--max-context TOKENS]'
+            printf '%s\n' 'Usage: scripts/autotune.sh [MODEL] [--quick] [--cpu-moe-sweep] [--resume] [--dry-run] [--min-context TOKENS] [--max-context TOKENS]'
             exit 0
             ;;
         *) die "unknown option: $1" ;;
@@ -41,12 +41,12 @@ MODEL="$(resolve_model_path)"
 HELP="$(server_help "${SERVER}")"
 ensure_results_dir
 if ((CPU_MOE_SWEEP)); then
-    RUN_ROOT="${RESULTS_DIR}/cpu-moe-$(timestamp)"
-    SUMMARY="${RESULTS_DIR}/cpu-moe-summary.json"
+    RUN_ROOT="${RESULTS_DIR}/cpu-moe-${MODEL_ID}-$(timestamp)"
+    SUMMARY="${RESULTS_DIR}/cpu-moe-${MODEL_ID}-summary.json"
     MAX_TOKENS=128
 else
-    RUN_ROOT="${RESULTS_DIR}/autotune-$(timestamp)"
-    SUMMARY="${RESULTS_DIR}/autotune-summary.json"
+    RUN_ROOT="${RESULTS_DIR}/autotune-${MODEL_ID}-$(timestamp)"
+    SUMMARY="${RESULTS_DIR}/autotune-${MODEL_ID}-summary.json"
     MAX_TOKENS=32
 fi
 mkdir -p "${RUN_ROOT}"
@@ -72,13 +72,13 @@ if is_macos; then
 elif [[ "${QUICK}" == 1 ]]; then
     contexts=(8192 32768 65536)
     kv_pairs=("q8_0,turbo4" "q8_0,turbo3")
-    cpu_moe_values=(30 32)
+    cpu_moe_values=(0)
     batch_values=(512)
     ubatch_values=(512)
 else
     contexts=(8192 16384 32768 65536 98304 131072)
     kv_pairs=("q8_0,turbo4" "q8_0,turbo3" "q8_0,turbo2" "f16,turbo4")
-    cpu_moe_values=(32 28 36 24)
+    cpu_moe_values=(0 8 16 32)
     batch_values=(512 1024 2048)
     ubatch_values=(256 512 1024)
 fi
@@ -178,7 +178,7 @@ run_candidate() {
     if [[ "${status}" == ready ]]; then
         prompt="$(make_prompt "${context}")"
         printf '%s' "${prompt}" >"${candidate_dir}/prompt.txt"
-        jq -n --arg model "kat-coder" --rawfile prompt "${candidate_dir}/prompt.txt" --argjson seed "${SEED:-42}" --argjson max_tokens "${MAX_TOKENS}" \
+        jq -n --arg model "${MODEL_ID}" --rawfile prompt "${candidate_dir}/prompt.txt" --argjson seed "${SEED:-42}" --argjson max_tokens "${MAX_TOKENS}" \
             '{model:$model,messages:[{role:"user",content:$prompt}],max_tokens:$max_tokens,temperature:0,seed:$seed}' >"${request_file}"
         response_file="${candidate_dir}/response.json"
         request_started="$(epoch_ms)"
@@ -246,8 +246,8 @@ if ((DRY_RUN)); then
     exit 0
 fi
 
-printf '%s\n' "${results[@]}" | jq -s --arg run_root "${RUN_ROOT}" --arg preferred "${PREFERRED_CONTEXT}" --arg minimum "${MIN_ACCEPTED_CONTEXT}" \
-    '{run_root:$run_root,preferred_context:($preferred|tonumber),minimum_accepted_context:($minimum|tonumber),candidates:.}' >"${SUMMARY}"
+printf '%s\n' "${results[@]}" | jq -s --arg model_id "${MODEL_ID}" --arg model_name "${MODEL_NAME:-${MODEL_ID}}" --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg run_root "${RUN_ROOT}" --arg preferred "${PREFERRED_CONTEXT}" --arg minimum "${MIN_ACCEPTED_CONTEXT}" \
+    '{model_id:$model_id,model_name:$model_name,model_file:$model_file,run_root:$run_root,preferred_context:($preferred|tonumber),minimum_accepted_context:($minimum|tonumber),candidates:.}' >"${SUMMARY}"
 
 if ((CPU_MOE_SWEEP)); then
     jq '. + {mode:"cpu-moe-sweep",winners_by_context:([.candidates[] | select(.accepted == true)] | group_by(.context) | map(sort_by(.generation_tokens_per_second) | last))}' \
@@ -272,7 +272,8 @@ WINNER_CONTEXT="$(jq -r '.context' <<<"${WINNER}")"
 jq --argjson winner "${WINNER}" '. + {winner:$winner, status:(if $winner.context >= .preferred_context then "success-preferred-context" else "success-minimum-context" end)}' "${SUMMARY}" >"${SUMMARY}.tmp"
 mv "${SUMMARY}.tmp" "${SUMMARY}"
 
-jq -r '"CTX_SIZE=" + (.context|tostring), "CACHE_TYPE_K=" + .cache_type_k, "CACHE_TYPE_V=" + .cache_type_v, "N_CPU_MOE=" + (.n_cpu_moe|tostring), "BATCH_SIZE=" + (.batch_size|tostring), "UBATCH_SIZE=" + (.ubatch_size|tostring)' <<<"${WINNER}" >"${PROJECT_DIR}/config/selected.env"
+mkdir -p "${PROJECT_DIR}/config/local"
+jq -r '"CTX_SIZE=" + (.context|tostring), "CACHE_TYPE_K=" + .cache_type_k, "CACHE_TYPE_V=" + .cache_type_v, "N_CPU_MOE=" + (.n_cpu_moe|tostring), "BATCH_SIZE=" + (.batch_size|tostring), "UBATCH_SIZE=" + (.ubatch_size|tostring)' <<<"${WINNER}" >"$(selected_config)"
 log "Selected context: ${WINNER_CONTEXT}"
 log "Summary: ${SUMMARY}"
 if ((CPU_MOE_SWEEP)); then

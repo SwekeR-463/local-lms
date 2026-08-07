@@ -48,7 +48,7 @@ default_batch_size() {
 }
 
 default_cpu_moe() {
-    if is_macos; then printf '%s\n' 0; else printf '%s\n' 32; fi
+    printf '%s\n' 0
 }
 
 default_cache_v() {
@@ -117,6 +117,21 @@ load_optional_config() {
     fi
 }
 
+load_model_profile() {
+    MODEL_ID="${1:-${DEFAULT_MODEL:-}}"
+    [[ "${MODEL_ID}" =~ ^[a-zA-Z0-9._-]+$ ]] || die "invalid model ID: ${MODEL_ID}"
+    MODEL_CONFIG="${PROJECT_DIR}/config/models/${MODEL_ID}.env"
+    [[ -f "${MODEL_CONFIG}" ]] || die "unknown model '${MODEL_ID}'; available: $(find "${PROJECT_DIR}/config/models" -name '*.env' -exec basename {} .env \; | sort | tr '\n' ' ')"
+    # shellcheck disable=SC1090
+    source "${MODEL_CONFIG}"
+    load_optional_config "${PROJECT_DIR}/config/runtime.env"
+    load_optional_config "${PROJECT_DIR}/config/local/${MODEL_ID}.env"
+}
+
+selected_config() {
+    printf '%s/config/local/%s.env\n' "${PROJECT_DIR}" "${MODEL_ID}"
+}
+
 server_help() {
     local server_bin="$1"
     "${server_bin}" --help 2>&1 || true
@@ -137,6 +152,7 @@ resolve_server_bin() {
 
     local candidate
     for candidate in \
+        "${PROJECT_DIR}/.cache/llama.cpp/build/bin/llama-server" \
         "${PROJECT_DIR}/.cache/llama-cpp-turboquant/build/bin/llama-server" \
         "${PROJECT_DIR}/.cache/llama-cpp-turboquant/build/bin/lm-server-tq" \
         "${PROJECT_DIR}/build/bin/llama-server" \

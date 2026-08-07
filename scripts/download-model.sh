@@ -9,13 +9,16 @@ source "${SCRIPT_DIR}/lib/common.sh"
 require_command curl
 require_command jq
 
+MODEL_ARG=""
+if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
+load_model_profile "${MODEL_ARG}"
 ensure_results_dir
 
 RESOLVE_ONLY=0
 case "${1:-}" in
     --resolve-only) RESOLVE_ONLY=1; shift ;;
     -h|--help)
-        printf '%s\n' 'Usage: scripts/download-model.sh [--resolve-only]'
+        printf '%s\n' 'Usage: scripts/download-model.sh [MODEL] [--resolve-only]'
         exit 0
         ;;
 esac
@@ -101,8 +104,9 @@ if [[ "${MODEL_SIZE}" == "0" || -z "${MODEL_SIZE}" ]]; then
 fi
 
 jq -n \
+    --arg id "${MODEL_ID}" \
+    --arg name "${MODEL_NAME:-${MODEL_ID}}" \
     --arg repo "${MODEL_REPO}" \
-    --arg profile "${MODEL_PROFILE:-explicit}" \
     --arg file "${MODEL_FILE_RESOLVED}" \
     --arg path "${OUTPUT_PATH}" \
     --arg bytes "${MODEL_BYTES}" \
@@ -110,16 +114,8 @@ jq -n \
     --arg sha256 "${MODEL_SHA256}" \
     --arg advertised_sha256 "${MODEL_SHA256_HF}" \
     --arg downloaded_at "$(iso_timestamp)" \
-    '{repository:$repo, profile:$profile, filename:$file, path:$path, bytes:($bytes|tonumber), advertised_bytes:($advertised_bytes|tonumber), sha256:$sha256, advertised_sha256:$advertised_sha256, downloaded_at:$downloaded_at}' \
-    >"${RESULTS_DIR}/model.json"
-
-MODEL_FILE="${output_name}"
-cat >"${PROJECT_DIR}/config/model.env" <<EOF
-MODEL_REPO=${MODEL_REPO}
-MODEL_PROFILE=${MODEL_PROFILE:-explicit}
-MODEL_FILE=${MODEL_FILE}
-MODEL_PATH=${OUTPUT_PATH}
-EOF
+    '{model_id:$id, model_name:$name, repository:$repo, filename:$file, path:$path, bytes:($bytes|tonumber), advertised_bytes:($advertised_bytes|tonumber), sha256:$sha256, advertised_sha256:$advertised_sha256, downloaded_at:$downloaded_at}' \
+    >"${RESULTS_DIR}/model-${MODEL_ID}.json"
 
 log "Model ready: $(human_bytes "${MODEL_BYTES}")"
-record_log "model resolver selected ${MODEL_FILE} (${MODEL_BYTES} bytes); metadata saved to results/model.json"
+record_log "${MODEL_ID}: model resolver selected ${MODEL_FILE_RESOLVED} (${MODEL_BYTES} bytes)"
