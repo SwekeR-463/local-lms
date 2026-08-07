@@ -16,6 +16,65 @@ if [[ "${RESULTS_DIR}" != /* ]]; then
     RESULTS_DIR="${PROJECT_DIR}/${RESULTS_DIR}"
 fi
 
+is_macos() {
+    [[ "$(uname -s)" == Darwin ]]
+}
+
+cpu_threads() {
+    if is_macos; then sysctl -n hw.ncpu; else nproc; fi
+}
+
+runtime_threads() {
+    if is_macos; then
+        local level
+        for level in 0 1 2; do
+            if [[ "$(sysctl -n "hw.perflevel${level}.name" 2>/dev/null || true)" == Performance ]]; then
+                sysctl -n "hw.perflevel${level}.physicalcpu"
+                return
+            fi
+        done
+        cpu_threads
+    else
+        printf '%s\n' 8
+    fi
+}
+
+default_threads_batch() {
+    if is_macos; then runtime_threads; else printf '%s\n' 12; fi
+}
+
+default_batch_size() {
+    if is_macos; then printf '%s\n' 1024; else printf '%s\n' 512; fi
+}
+
+default_cpu_moe() {
+    if is_macos; then printf '%s\n' 0; else printf '%s\n' 32; fi
+}
+
+default_cache_v() {
+    if is_macos; then printf '%s\n' turbo3; else printf '%s\n' turbo4; fi
+}
+
+file_size() {
+    if is_macos; then stat -f '%z' "$1"; else stat -c '%s' "$1"; fi
+}
+
+human_bytes() {
+    awk -v bytes="$1" 'BEGIN { split("B KiB MiB GiB TiB", u); while (bytes >= 1024 && i < 4) { bytes /= 1024; i++ } printf "%.1f %s\n", bytes, u[i+1] }'
+}
+
+sha256_file() {
+    if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'; else shasum -a 256 "$1" | awk '{print $1}'; fi
+}
+
+epoch_ms() {
+    perl -MTime::HiRes=time -e 'printf "%.0f\n", time * 1000'
+}
+
+iso_timestamp() {
+    date '+%Y-%m-%dT%H:%M:%S%z'
+}
+
 timestamp() {
     date '+%Y%m%d-%H%M%S'
 }
@@ -125,7 +184,7 @@ pid_is_ours() {
     pid="$(<"${pid_file}")"
     [[ "${pid}" =~ ^[0-9]+$ ]] || return 1
     kill -0 "${pid}" 2>/dev/null || return 1
-    tr '\0' ' ' < "/proc/${pid}/cmdline" | grep -Fq -- "${PROJECT_DIR}"
+    ps -ww -p "${pid}" -o command= 2>/dev/null | grep -Fq -- "${PROJECT_DIR}"
 }
 
 port_is_free() {

@@ -1,7 +1,14 @@
+.DS_Store
 .cache/
 models/
+config/model.env
+config/runtime.env
 config/selected.env
 *.log
 *.pid
 .venv/
+__pycache__/
+results/autotune-*/
+results/cpu-moe-*/
+results/preflight-*.txt
 eval_results*/

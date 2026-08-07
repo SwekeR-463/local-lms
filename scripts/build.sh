@@ -9,7 +9,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 case "${1:-}" in
     -h|--help)
         printf '%s\n' 'Usage: scripts/build.sh'
-        printf '%s\n' 'Build the TurboQuant llama-server with CUDA, or Vulkan when explicitly enabled.'
+        printf '%s\n' 'Build llama-server with Metal on macOS, or CUDA/Vulkan on Linux.'
         exit 0
         ;;
     "") ;;
@@ -32,32 +32,38 @@ else
     log "Using existing TurboQuant source: ${SOURCE_DIR}"
 fi
 
-if [[ -n "${CUDA_ARCHITECTURES:-}" ]]; then
-    CUDA_ARGS=(-DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCHITECTURES}")
-else
-    CUDA_ARGS=()
-fi
-
-NVCC_BIN="$(command -v nvcc 2>/dev/null || true)"
-if [[ -z "${NVCC_BIN}" ]]; then
-    for candidate in /usr/local/cuda/bin/nvcc /usr/local/cuda-*/bin/nvcc; do
-        if [[ -x "${candidate}" ]]; then
-            NVCC_BIN="${candidate}"
-            break
-        fi
-    done
-fi
-
-if [[ -n "${NVCC_BIN}" ]]; then
-    export CUDACXX="${NVCC_BIN}"
-    export PATH="$(dirname "${NVCC_BIN}"):${PATH}"
-    log "CUDA compiler: $(nvcc --version | tail -n 1)"
+if is_macos; then
+    log "Building Metal backend for Apple Silicon"
     cmake -S "${SOURCE_DIR}" -B "${BUILD_DIR}" \
         -DCMAKE_BUILD_TYPE=Release \
-        -DGGML_CUDA=ON \
-        "${CUDA_ARGS[@]}"
+        -DGGML_METAL=ON \
+        -DGGML_ACCELERATE=ON
 else
-    if [[ "${ALLOW_VULKAN_FALLBACK:-0}" == 1 ]]; then
+    if [[ -n "${CUDA_ARCHITECTURES:-}" ]]; then
+        CUDA_ARGS=(-DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCHITECTURES}")
+    else
+        CUDA_ARGS=()
+    fi
+
+    NVCC_BIN="$(command -v nvcc 2>/dev/null || true)"
+    if [[ -z "${NVCC_BIN}" ]]; then
+        for candidate in /usr/local/cuda/bin/nvcc /usr/local/cuda-*/bin/nvcc; do
+            if [[ -x "${candidate}" ]]; then
+                NVCC_BIN="${candidate}"
+                break
+            fi
+        done
+    fi
+
+    if [[ -n "${NVCC_BIN}" ]]; then
+        export CUDACXX="${NVCC_BIN}"
+        export PATH="$(dirname "${NVCC_BIN}"):${PATH}"
+        log "CUDA compiler: $(nvcc --version | tail -n 1)"
+        cmake -S "${SOURCE_DIR}" -B "${BUILD_DIR}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DGGML_CUDA=ON \
+            "${CUDA_ARGS[@]}"
+    elif [[ "${ALLOW_VULKAN_FALLBACK:-0}" == 1 ]]; then
         require_command vulkaninfo
         log "CUDA compiler unavailable; using Vulkan fallback"
         cmake -S "${SOURCE_DIR}" -B "${BUILD_DIR}" \
@@ -68,7 +74,7 @@ else
     fi
 fi
 
-cmake --build "${BUILD_DIR}" --config Release --target llama-server -j"$(nproc)"
+cmake --build "${BUILD_DIR}" --config Release --target llama-server -j"$(cpu_threads)"
 SERVER="${BUILD_DIR}/bin/llama-server"
 if [[ ! -x "${SERVER}" ]]; then
     SERVER="$(find "${BUILD_DIR}" -type f \( -name llama-server -o -name lm-server-tq \) -perm -111 -print -quit)"

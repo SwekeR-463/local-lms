@@ -101,3 +101,44 @@ Current status: **131k context achieved** on RTX 4050 Max-Q with the I-Mini GGUF
 3. Optionally run full `scripts/autotune.sh` — but 800+ candidates would take 12+ hours.
 4. Consider A/B testing `ngram-mod` speculative decoding and `--cache-ram` as second-stage optimizations.
 5. Monitor swap usage during prolonged 131k runs.
+
+- `2026-08-04 22:27:46 IST` — preflight completed; report saved at results/preflight-20260804-222746.txt
+
+- `2026-08-04 22:27:47 IST` — server started with PID 20349; log results/server-20260804-222746.log
+
+- `2026-08-04 22:30:45 IST` — stopped project server PID 20349
+
+- `2026-08-05 00:30:23 IST` — autotune selected 98304-token configuration; summary saved at results/autotune-summary.json
+
+## Apple Silicon tuning — 2026-08-05
+
+- Ported the runner to macOS while retaining Linux/CUDA support. Built TurboQuant commit `0967f499714dd6018494b480b710b849ca45b156` with Metal and Accelerate on an M5 Pro (16 GPU cores, 48 GiB unified memory).
+- Downloaded and verified the 12.5 GiB I-Mini model. Short API validation passed.
+- Full 36-candidate Metal search completed: 28 accepted. Best completed configuration was 98,304 context, `q8_0/turbo3`, `n-cpu-moe=0`, batch/ubatch `1024/1024`, 10 threads, and full Metal offload. The long-prompt request took 386 seconds.
+- All 131,072-context candidates hit the old 480-second HTTP timeout; this is not evidence of an out-of-memory or Metal failure. Timeout was raised to 900 seconds and an exact-context retry was added, then the retry was stopped at user request.
+- `n-cpu-moe=0` is only the all-Metal baseline. llama.cpp supports CPU expert offload on Metal; future tuning should compare `0/8/16/24/32/40`. Unified memory avoids a PCIe copy, but CPU execution and CPU/GPU synchronization can still reduce throughput, so offload should be selected by measurement rather than assumed beneficial.
+- Current selected configuration remains the completed 98,304-context winner. Autotuning is stopped and port 8000 is free.
+
+### CPU MoE sweep results
+
+Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`, batch/ubatch `1024/1024`, 10 threads, deterministic prompts, and 128 output tokens.
+
+| Context | CPU MoE | Prompt tok/s | Generation tok/s | RSS GiB |
+|---:|---:|---:|---:|---:|
+| 65,536 | **0** | **372.14** | **30.91** | 13.63 |
+| 65,536 | 8 | 343.40 | 26.08 | 13.63 |
+| 65,536 | 16 | 323.51 | 23.48 | 13.63 |
+| 65,536 | 24 | 307.84 | 20.93 | 13.63 |
+| 65,536 | 32 | 278.58 | 18.15 | 13.63 |
+| 65,536 | 40 | 260.69 | 14.79 | 13.63 |
+| 98,304 | **0** | **229.16** | **22.80** | 13.97 |
+| 98,304 | 8 | 219.04 | 19.18 | 13.98 |
+| 98,304 | 16 | 215.24 | 16.94 | 13.98 |
+| 98,304 | 24 | 213.54 | 16.99 | 13.98 |
+| 98,304 | 32 | 211.14 | 16.12 | 13.98 |
+| 98,304 | 40 | 206.62 | 15.38 | 13.97 |
+
+- Full Metal (`n-cpu-moe=0`) won at both contexts. Offloading eight layers reduced generation throughput by ~16%; additional offload generally worsened it. RSS differences were noise-level because CPU and GPU share unified memory.
+- I-Mini remains the selected model per user scope. Current configuration: 98,304 context, `q8_0/turbo3`, `n-cpu-moe=0`, `1024/1024`, 10 threads.
+- Raw runs: `results/cpu-moe-run1.json`, `results/cpu-moe-run2.json`. Aggregate: `results/cpu-moe-results.json`. Charts: `results/plots/cpu_moe_generation.png` and `results/plots/cpu_moe_prompt.png`.
+- `README.md` now contains the measured M5 Pro results and charts.

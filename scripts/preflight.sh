@@ -42,7 +42,7 @@ log "Starting preflight"
 log "Project: ${PROJECT_DIR}"
 log "Config: ${CONFIG_FILE}"
 
-required_commands=(cmake git curl awk sed timeout)
+required_commands=(cmake git curl awk sed perl)
 for command_name in "${required_commands[@]}"; do
     if command -v "${command_name}" >/dev/null 2>&1; then
         log "command ok: ${command_name} ($(command -v "${command_name}"))"
@@ -70,45 +70,51 @@ else
 fi
 
 log "OS: $(uname -srm)"
-log "CPU: $(lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}' || true)"
-log "CPU threads: $(nproc 2>/dev/null || printf unknown)"
-log "RAM: $(free -h 2>/dev/null | awk '/^Mem:/ {print $2 " total, " $7 " available"}' || printf unknown)"
-log "Disk: $(df -h "${PROJECT_DIR}" | awk 'NR==2 {print $4 " free on " $1}')"
-log "NUMA: $(lscpu 2>/dev/null | awk -F: '/NUMA node\(s\)/ {gsub(/^ +/, "", $2); print $2; exit}' || printf unknown)"
+if is_macos; then
+    log "CPU: $(sysctl -n machdep.cpu.brand_string)"
+    log "CPU cores: $(cpu_threads) total, $(runtime_threads) performance"
+    TOTAL_RAM_BYTES="$(sysctl -n hw.memsize)"
+    log "Unified memory: $(human_bytes "${TOTAL_RAM_BYTES}")"
+    GPU_INFO="$(system_profiler SPDisplaysDataType 2>/dev/null | awk -F': ' '/Chipset Model|Total Number of Cores|Metal Support/ {gsub(/^ +/, "", $1); printf "%s%s: %s", separator, $1, $2; separator=", "}')"
+    [[ -n "${GPU_INFO}" ]] || die "Metal GPU not detected"
+    log "GPU: ${GPU_INFO}"
+    log "Swap: $(sysctl -n vm.swapusage)"
+else
+    log "CPU: $(lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^ +/, "", $2); print $2; exit}' || true)"
+    log "CPU threads: $(cpu_threads 2>/dev/null || printf unknown)"
+    log "RAM: $(free -h 2>/dev/null | awk '/^Mem:/ {print $2 " total, " $7 " available"}' || printf unknown)"
+    log "NUMA: $(lscpu 2>/dev/null | awk -F: '/NUMA node\(s\)/ {gsub(/^ +/, "", $2); print $2; exit}' || printf unknown)"
 
-GPU_PRESENT=0
-if command -v lspci >/dev/null 2>&1 && lspci | grep -Eiq 'VGA|3D|Display' && lspci | grep -Eiq 'NVIDIA|AMD|Intel'; then
-    GPU_PRESENT=1
-fi
-
-if command -v nvidia-smi >/dev/null 2>&1; then
-    if GPU_INFO="$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>&1)"; then
-        log "NVIDIA GPU: ${GPU_INFO}"
-    else
-        if ((DIAGNOSE)); then
+    GPU_PRESENT=0
+    if command -v lspci >/dev/null 2>&1 && lspci | grep -Eiq 'VGA|3D|Display' && lspci | grep -Eiq 'NVIDIA|AMD|Intel'; then
+        GPU_PRESENT=1
+    fi
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        if GPU_INFO="$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>&1)"; then
+            log "NVIDIA GPU: ${GPU_INFO}"
+        elif ((DIAGNOSE)); then
             warn "NVIDIA PCI device/tool exists but nvidia-smi failed: ${GPU_INFO}"
         else
             die "NVIDIA driver/runtime unavailable: ${GPU_INFO}"
         fi
+    elif ((GPU_PRESENT)); then
+        if ((DIAGNOSE)); then warn "GPU detected but nvidia-smi is not installed"; else die "GPU detected but nvidia-smi is not installed"; fi
+    else
+        warn "no supported GPU detected"
     fi
-elif ((GPU_PRESENT)); then
-    if ((DIAGNOSE)); then warn "GPU detected but nvidia-smi is not installed"; else die "GPU detected but nvidia-smi is not installed"; fi
-else
-    warn "no supported GPU detected"
-fi
 
-if swapon --show --noheadings 2>/dev/null | grep -q .; then
-    SWAP_ACTIVE=1
-    log "Swap: active"
-    if [[ "${ALLOW_SWAP:-0}" != 1 && "${DIAGNOSE}" == 0 ]]; then
-        die "swap is active; set ALLOW_SWAP=1 only for an explicit diagnostic run"
-    elif [[ "${ALLOW_SWAP:-0}" != 1 ]]; then
-        warn "swap is active; this run is diagnostic only"
+    if swapon --show --noheadings 2>/dev/null | grep -q .; then
+        log "Swap: active"
+        if [[ "${ALLOW_SWAP:-0}" != 1 && "${DIAGNOSE}" == 0 ]]; then
+            die "swap is active; set ALLOW_SWAP=1 only for an explicit diagnostic run"
+        elif [[ "${ALLOW_SWAP:-0}" != 1 ]]; then
+            warn "swap is active; this run is diagnostic only"
+        fi
+    else
+        log "Swap: inactive"
     fi
-else
-    SWAP_ACTIVE=0
-    log "Swap: inactive"
 fi
+log "Disk: $(df -h "${PROJECT_DIR}" | awk 'NR==2 {print $4 " free on " $1}')"
 
 if ! port_is_free "${HOST}" "${PORT}"; then
     die "port ${HOST}:${PORT} is already in use"
@@ -123,10 +129,10 @@ if [[ -n "${MODEL_PATH:-}" || -n "${MODEL_FILE:-}" ]]; then
     fi
     if [[ "${CHECK_MODEL}" != /* ]]; then CHECK_MODEL="${PROJECT_DIR}/${CHECK_MODEL}"; fi
     if [[ -f "${CHECK_MODEL}" ]]; then
-        MODEL_BYTES="$(stat -c '%s' "${CHECK_MODEL}")"
-        AVAILABLE_BYTES="$(awk '/MemAvailable:/ {print $2 * 1024; exit}' /proc/meminfo)"
-        log "Model: ${CHECK_MODEL} ($(numfmt --to=iec "${MODEL_BYTES}"))"
-        log "Available RAM: $(numfmt --to=iec "${AVAILABLE_BYTES}")"
+        MODEL_BYTES="$(file_size "${CHECK_MODEL}")"
+        if is_macos; then AVAILABLE_BYTES="$(sysctl -n hw.memsize)"; else AVAILABLE_BYTES="$(awk '/MemAvailable:/ {print $2 * 1024; exit}' /proc/meminfo)"; fi
+        log "Model: ${CHECK_MODEL} ($(human_bytes "${MODEL_BYTES}"))"
+        log "Memory budget: $(human_bytes "${AVAILABLE_BYTES}")"
         if ((MODEL_BYTES > AVAILABLE_BYTES)); then
             warn "model file is larger than currently available RAM; GPU offload may reduce CPU residency, but this is high risk"
         fi
