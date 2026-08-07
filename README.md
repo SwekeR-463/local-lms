@@ -1,6 +1,6 @@
 # KAT-Coder TurboQuant runner
 
-This project is a reproducible launcher and tuner for the KAT-Coder V2.5 Dev APEX Mini GGUF on a small GPU. The default model is:
+This project is a reproducible launcher and tuner for the KAT-Coder V2.5 Dev APEX Mini GGUF on Linux/NVIDIA and Apple Silicon. The default model is:
 
 ```text
 mudler/KAT-Coder-V2.5-Dev-APEX-GGUF
@@ -9,7 +9,34 @@ KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf
 
 131,072 tokens is the preferred context. A stable 65,536-token configuration is an accepted result.
 
-## Current hardware (verified 2026-07-25)
+## Mac results
+
+On macOS the scripts automatically build Metal + Accelerate. The measured winner keeps every MoE layer on Metal and uses 10 performance-core threads, `q8_0/turbo3` KV cache, and `1024/1024` batch/ubatch.
+
+| Configured context | Actual prompt | Prompt processing | Generation | Process RSS |
+|---:|---:|---:|---:|---:|
+| 65,536 | 60,504 | 372.14 tok/s | **30.91 tok/s** | 13.63 GiB |
+| 98,304 | 90,751 | 229.16 tok/s | **22.80 tok/s** | 13.97 GiB |
+
+Values are means of two deterministic runs with 128 generated tokens. CPU MoE offload did not help: even 8 offloaded layers reduced generation by about 16% at both contexts, while RSS stayed effectively unchanged.
+
+![CPU MoE generation throughput](results/plots/cpu_moe_generation.png)
+
+![CPU MoE prompt throughput](results/plots/cpu_moe_prompt.png)
+
+```bash
+brew install cmake
+scripts/preflight.sh --allow-missing-model --allow-missing-runtime --diagnose
+scripts/build.sh
+scripts/download-model.sh
+scripts/autotune.sh --quick
+scripts/autotune.sh --cpu-moe-sweep --min-context 65536 --max-context 98304
+scripts/run.sh
+```
+
+Keep Activity Monitor's memory pressure green. Override runtime values in `config/default.env` or generated `config/selected.env` only after measuring them.
+
+## NVIDIA hardware used for verified results (2026-07-25)
 
 | Component | Detail |
 |---|---|
@@ -64,7 +91,7 @@ Run diagnostics without downloading anything:
 scripts/preflight.sh --allow-missing-model --allow-missing-runtime --diagnose
 ```
 
-After the NVIDIA driver is working, build the runtime:
+Build the runtime (Metal is selected automatically on macOS; CUDA on Linux):
 
 ```bash
 scripts/build.sh
@@ -136,7 +163,7 @@ scripts/stop.sh
 
 ## Configuration
 
-Edit `config/default.env` for paths and limits. The tuner writes the selected parameters to `config/selected.env`; the builder writes the runtime path to `config/runtime.env`; the downloader writes the resolved model path to `config/model.env`.
+Edit `config/default.env` for paths and limits. The tuner writes the selected parameters to ignored `config/selected.env`; the builder writes the local runtime path to ignored `config/runtime.env`; the downloader writes the local model path to ignored `config/model.env`.
 
 Generated logs and machine-readable results are under `results/`. The handoff history is [log.md](log.md).
 
@@ -144,8 +171,8 @@ Generated logs and machine-readable results are under `results/`. The handoff hi
 
 The tuner tests increasing context sizes and asymmetric KV settings, beginning with `q8_0/turbo4`. It only accepts a candidate when the server responds, memory remains within safety margins, and no CUDA/runtime error occurs. It prefers the highest stable context, then throughput. It does not silently enable swap, symmetric aggressive K-cache compression, speculative decoding, or undocumented flags.
 
-Use `--dry-run` to inspect the candidate matrix without launching models. Use `--quick` for the initial smoke search and `--resume` to reuse an existing result directory.
+Use `--dry-run` to inspect the candidate matrix without launching models. Use `--quick` for the initial smoke search, `--min-context`/`--max-context` to bound retries, and `--resume` to reuse an existing result directory.
 
 ---
 
-Built together using GPT-5.6 — Luna ($2.93) and DeepSeek V4 Pro ($0.15) in OpenCode.
+Built together using GPT-5.6 Sol ($14.11), GPT-5.6 — Luna ($2.93) and DeepSeek V4 Pro ($0.15) in OpenCode.

@@ -27,7 +27,8 @@ mkdir -p "${MODEL_DIR}"
 
 log "Querying ${API_URL}"
 MODEL_JSON="$(curl --fail --silent --show-error --location "${API_URL}")" || die "could not query model repository"
-mapfile -t FILES < <(jq -r '.siblings[]?.rfilename // empty' <<<"${MODEL_JSON}")
+FILES=()
+while IFS= read -r item; do FILES+=("${item}"); done < <(jq -r '.siblings[]?.rfilename // empty' <<<"${MODEL_JSON}")
 ((${#FILES[@]} > 0)) || die "repository has no visible files: ${MODEL_REPO}"
 
 contains_file() {
@@ -91,8 +92,8 @@ else
 fi
 
 [[ -s "${OUTPUT_PATH}" ]] || die "downloaded model is empty: ${OUTPUT_PATH}"
-MODEL_BYTES="$(stat -c '%s' "${OUTPUT_PATH}")"
-MODEL_SHA256="$(sha256sum "${OUTPUT_PATH}" | awk '{print $1}')"
+MODEL_BYTES="$(file_size "${OUTPUT_PATH}")"
+MODEL_SHA256="$(sha256_file "${OUTPUT_PATH}")"
 MODEL_SIZE="$(jq -r --arg file "${MODEL_FILE_RESOLVED}" '.siblings[] | select(.rfilename == $file) | (.size // 0)' <<<"${MODEL_JSON}")"
 MODEL_SHA256_HF="$(jq -r --arg file "${MODEL_FILE_RESOLVED}" '.siblings[] | select(.rfilename == $file) | (.lfs.sha256 // .sha // "")' <<<"${MODEL_JSON}")"
 if [[ "${MODEL_SIZE}" == "0" || -z "${MODEL_SIZE}" ]]; then
@@ -108,7 +109,7 @@ jq -n \
     --arg advertised_bytes "${MODEL_SIZE}" \
     --arg sha256 "${MODEL_SHA256}" \
     --arg advertised_sha256 "${MODEL_SHA256_HF}" \
-    --arg downloaded_at "$(date --iso-8601=seconds)" \
+    --arg downloaded_at "$(iso_timestamp)" \
     '{repository:$repo, profile:$profile, filename:$file, path:$path, bytes:($bytes|tonumber), advertised_bytes:($advertised_bytes|tonumber), sha256:$sha256, advertised_sha256:$advertised_sha256, downloaded_at:$downloaded_at}' \
     >"${RESULTS_DIR}/model.json"
 
@@ -120,5 +121,5 @@ MODEL_FILE=${MODEL_FILE}
 MODEL_PATH=${OUTPUT_PATH}
 EOF
 
-log "Model ready: $(numfmt --to=iec "${MODEL_BYTES}")"
+log "Model ready: $(human_bytes "${MODEL_BYTES}")"
 record_log "model resolver selected ${MODEL_FILE} (${MODEL_BYTES} bytes); metadata saved to results/model.json"

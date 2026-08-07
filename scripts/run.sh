@@ -42,14 +42,14 @@ add_flag_value() {
 add_flag_value "--host" "${HOST}"
 add_flag_value "--port" "${PORT}"
 add_flag_value "--ctx-size" "${CTX_SIZE:-${PREFERRED_CONTEXT}}"
-add_flag_value "--threads" "${THREADS:-8}"
-add_flag_value "--threads-batch" "${THREADS_BATCH:-12}"
+add_flag_value "--threads" "${THREADS:-$(runtime_threads)}"
+add_flag_value "--threads-batch" "${THREADS_BATCH:-$(default_threads_batch)}"
 add_flag_value "--parallel" "${PARALLEL:-1}"
 add_flag_value "--cache-type-k" "${CACHE_TYPE_K:-q8_0}"
-add_flag_value "--cache-type-v" "${CACHE_TYPE_V:-turbo4}"
-add_flag_value "--ubatch-size" "${UBATCH_SIZE:-512}"
-add_flag_value "--batch-size" "${BATCH_SIZE:-512}"
-add_flag_value "--n-cpu-moe" "${N_CPU_MOE:-32}"
+add_flag_value "--cache-type-v" "${CACHE_TYPE_V:-$(default_cache_v)}"
+add_flag_value "--ubatch-size" "${UBATCH_SIZE:-$(default_batch_size)}"
+add_flag_value "--batch-size" "${BATCH_SIZE:-$(default_batch_size)}"
+add_flag_value "--n-cpu-moe" "${N_CPU_MOE:-$(default_cpu_moe)}"
 add_flag_value "--seed" "${SEED:-42}"
 
 if has_flag "${HELP}" "-ngl"; then ARGS+=(-ngl "${GPU_LAYERS:-99}"); fi
@@ -67,7 +67,7 @@ LOG_FILE="${RESULTS_DIR}/server-$(timestamp).log"
 
 log "Launching ${SERVER}"
 log "Model: ${MODEL}"
-log "Context: ${CTX_SIZE:-${PREFERRED_CONTEXT}}, K/V: ${CACHE_TYPE_K:-q8_0}/${CACHE_TYPE_V:-turbo4}"
+log "Context: ${CTX_SIZE:-${PREFERRED_CONTEXT}}, K/V: ${CACHE_TYPE_K:-q8_0}/${CACHE_TYPE_V:-$(default_cache_v)}"
 log "Log: ${LOG_FILE}"
 
 if ((FOREGROUND)); then
