@@ -27,7 +27,7 @@ jq -n --arg model "${MODEL_ID}" --rawfile prompt "${PROMPT_FILE}" --argjson seed
     '{model:$model,messages:[{role:"user",content:$prompt}],max_tokens:512,temperature:0,seed:$seed}' >"${REQUEST}"
 curl --fail --silent --show-error -H 'Content-Type: application/json' --data-binary "@${REQUEST}" \
     "http://${HOST}:${PORT}/v1/chat/completions" >"${RESPONSE}"
-jq -e '(.choices | length) > 0' "${RESPONSE}" >/dev/null || die "benchmark returned no completion"
+jq -e '(.choices[0].message.reasoning_content // "") + (.choices[0].message.content // .choices[0].text // "") | length > 0' "${RESPONSE}" >/dev/null || die "benchmark returned no completion"
 
 RSS_KB=0
 PID_FILE="${RESULTS_DIR}/server.pid"
@@ -43,8 +43,8 @@ OUTPUT="${RESULTS_DIR}/benchmark-${MODEL_ID}-$(timestamp).json"
 jq --arg model_id "${MODEL_ID}" --arg model_name "${MODEL_NAME:-${MODEL_ID}}" \
     --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg hardware "${HARDWARE}" \
     --argjson context "${CTX_SIZE:-${PREFERRED_CONTEXT}}" --argjson rss_kb "${RSS_KB}" \
-    --arg cache_k "${CACHE_TYPE_K:-q8_0}" --arg cache_v "${CACHE_TYPE_V:-$(default_cache_v)}" --arg run_at "$(iso_timestamp)" \
-    '{model_id:$model_id,model_name:$model_name,model_file:$model_file,run_at:$run_at,hardware:$hardware,context:$context,cache_type_k:$cache_k,cache_type_v:$cache_v,rss_kb:$rss_kb,prompt_tokens:(.usage.prompt_tokens // 0),completion_tokens:(.usage.completion_tokens // 0),prompt_tokens_per_second:(.timings.prompt_per_second // 0),generation_tokens_per_second:(.timings.predicted_per_second // 0),response:(.choices[0].message.content // .choices[0].text // "")}' \
+    --arg cache_k "${CACHE_TYPE_K:-q8_0}" --arg cache_v "${CACHE_TYPE_V:-$(default_cache_v)}" --arg spec_type "${SPEC_TYPE:-none}" --arg run_at "$(iso_timestamp)" \
+    '{model_id:$model_id,model_name:$model_name,model_file:$model_file,run_at:$run_at,hardware:$hardware,context:$context,cache_type_k:$cache_k,cache_type_v:$cache_v,spec_type:$spec_type,rss_kb:$rss_kb,prompt_tokens:(.usage.prompt_tokens // 0),completion_tokens:(.usage.completion_tokens // 0),prompt_ms:(.timings.prompt_ms // 0),generation_ms:(.timings.predicted_ms // 0),prompt_tokens_per_second:(.timings.prompt_per_second // 0),generation_tokens_per_second:(.timings.predicted_per_second // 0),draft_tokens:(.timings.draft_n // 0),draft_tokens_accepted:(.timings.draft_n_accepted // 0),draft_acceptance:(if (.timings.draft_n // 0) > 0 then .timings.draft_n_accepted / .timings.draft_n else 0 end),response:([.choices[0].message.reasoning_content,.choices[0].message.content,.choices[0].text] | map(select(. != null and . != "")) | join("\n\n"))}' \
     "${RESPONSE}" >"${OUTPUT}"
 log "Benchmark saved: ${OUTPUT}"
 jq '{model_id,context,rss_kb,prompt_tokens_per_second,generation_tokens_per_second}' "${OUTPUT}"

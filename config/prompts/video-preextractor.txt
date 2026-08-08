@@ -1,0 +1,15 @@
+Build a production-ready Python video pre-extractor for a machine-learning dataset. It must recursively read raw MP4 files from an input directory and convert them into clips that are directly usable by PyTorchVideo and a PyTorch training pipeline.
+
+Requirements:
+- Use `pytorchvideo.data.EncodedVideo` for decoding.
+- Provide a CLI with input/output directories and configurable clip duration, clip stride, target FPS, spatial size, worker count, and overwrite/resume behavior.
+- Extract clips across each full video rather than only reading the first clip.
+- Produce tensors in `C x T x H x W` layout with deterministic temporal sampling and standard resize/crop/normalization transforms.
+- Save processed clips safely as `.pt` files and write a JSONL manifest containing source path, clip path, start/end timestamps, tensor shape, and video metadata.
+- Handle short, variable-frame-rate, unreadable, and partially corrupted videos without aborting the entire dataset run.
+- Support resumable processing and atomic output writes.
+- Avoid loading a full dataset or full video collection into memory.
+- Include structured logging and a concise processing summary.
+- Include type hints, installation instructions, example commands, and focused pytest tests for clip planning, manifest output, resume behavior, and corrupt-input handling.
+
+Return the complete implementation. Keep the design straightforward and avoid unnecessary framework abstractions.

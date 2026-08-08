@@ -1,0 +1,28 @@
+All done. Here's a summary of the implementation:
+
+## Files Created
+
+| File | Size | Purpose |
+|------|------|---------|
+| `video_preextractor.py` | 15.5 KB | Main CLI tool |
+| `README.md` | 2.3 KB | Installation & usage docs |
+| `tests/test_video_preextractor.py` | 10.7 KB | 22 focused pytest tests |
+
+## Key Design Decisions
+
+- **CLI**: `--input`, `--output`, `--clip_duration`, `--clip_stride`, `--fps`, `--spatial_size`, `--workers`, `--overwrite`, `--log_level`
+- **Clip planning**: Deterministic `(start, end)` pairs across the full video duration, advancing by `clip_stride`
+- **Tensor layout**: `C x T x H x W` with ImageNet normalization and `F.resize` to `spatial_size × spatial_size`
+- **Atomic writes**: `tempfile.mkstemp` + `os.replace` to prevent partial `.pt` files
+- **Resume**: Existing clips preserved by default; `--overwrite` regenerates all
+- **Error handling**: Short videos, unreadable files, and corrupt inputs are logged and continued — never abort the run
+- **Streaming**: Videos processed one at a time, not loaded into memory
+- **pytorchvideo**: `EncodedVideo` used with graceful fallback on import failure
+
+## Test Results
+
+```
+22 passed in 0.03s
+```
+
+Tests cover: clip planning (basic, overlapping, edge cases), manifest JSONL output, resume/overwrite behavior, corrupt-input handling, video file detection, and stats summaries.

@@ -1,0 +1,18 @@
+[project]
+name = "video-preextractor"
+version = "0.1.0"
+description = "Recursively extract video clips for ML training pipelines"
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "pytorchvideo>=0.1.5",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+log_cli = true
+log_cli_level = "DEBUG"
