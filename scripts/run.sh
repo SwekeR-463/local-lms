@@ -51,6 +51,15 @@ add_flag_value "--ubatch-size" "${UBATCH_SIZE:-$(default_batch_size)}"
 add_flag_value "--batch-size" "${BATCH_SIZE:-$(default_batch_size)}"
 add_flag_value "--n-cpu-moe" "${N_CPU_MOE:-$(default_cpu_moe)}"
 add_flag_value "--seed" "${SEED:-42}"
+if [[ -n "${SPEC_TYPE:-}" ]]; then
+    add_flag_value "--spec-type" "${SPEC_TYPE}"
+    add_flag_value "--spec-draft-n-max" "${SPEC_DRAFT_N_MAX:-1}"
+    add_flag_value "--spec-draft-n-min" "${SPEC_DRAFT_N_MIN:-0}"
+    add_flag_value "--spec-draft-p-min" "${SPEC_DRAFT_P_MIN:-0.75}"
+    add_flag_value "--spec-ngram-mod-n-min" "${SPEC_NGRAM_MOD_N_MIN:-8}"
+    add_flag_value "--spec-ngram-mod-n-max" "${SPEC_NGRAM_MOD_N_MAX:-24}"
+    add_flag_value "--spec-ngram-mod-n-match" "${SPEC_NGRAM_MOD_N_MATCH:-48}"
+fi
 
 if has_flag "${HELP}" "-ngl"; then ARGS+=(-ngl "${GPU_LAYERS:-99}"); fi
 if has_flag "${HELP}" "-fa"; then ARGS+=(-fa on); fi

@@ -11,6 +11,26 @@
       },
       "models": [
         {
+          "id": "kat-coder",
+          "name": "KAT-Coder V2.5 Dev APEX I-Mini (local)",
+          "reasoning": true,
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "compat": {
+            "thinkingFormat": "qwen-chat-template"
+          }
+        },
+        {
+          "id": "kat-coder-mtp",
+          "name": "KAT-Coder V2.5 Dev MTP APEX I-Mini (local)",
+          "reasoning": true,
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "compat": {
+            "thinkingFormat": "qwen-chat-template"
+          }
+        },
+        {
           "id": "qwen3.6-35b-a3b",
           "name": "Qwen3.6 35B A3B (local)",
           "reasoning": true,

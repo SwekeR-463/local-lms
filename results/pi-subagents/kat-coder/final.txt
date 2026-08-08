@@ -1,0 +1,6 @@
+All 15 tests pass. The fix was adding `__call__` to the `MockTensor` class so that chained method calls like `tensor.permute(3, 0, 1, 2)` return the mock object properly instead of raising `TypeError: 'MockTensor' object is not callable`.
+
+**Summary of changes:**
+- `tests/test_video_preextractor.py` - Added `__call__` method to `MockTensor` class in `test_decode_clip_output_shape` to handle method chaining in the torch mock
+
+The test file now properly mocks the tensor transformation chain (permute + interpolate) while preserving the expected `dim()` and `shape` properties.

@@ -148,3 +148,43 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Refactored the KAT-specific runner into a clean, model-agnostic GGUF workbench while preserving the llama.cpp TurboQuant runtime and KV-cache tuning.
 - Added reusable model profiles, per-model local tuning state, namespaced JSON results, a comparable benchmark command, Pi integration guidance, and contributor instructions in `AGENTS.md`.
 - Retained KAT-Coder as the default profile and added Qwen3.6 35B-A3B and Qwen3.5 27B profiles. Shell syntax, dry-run autotuning, Pi connectivity, and JSON validation passed.
+
+## KAT-Coder MTP benchmark — 2026-08-08
+
+- Downloaded and verified `Kwaipilot_KAT-Coder-V2.5-Dev-MTP-APEX-I-Mini.gguf` (14,366,220,928 bytes / 13.4 GiB) from `gbuzhf/KAT-Coder-V2.5-Dev-MTP-GGUF`.
+- Added the `kat-coder-mtp` profile and optional speculative-decoding flags to `scripts/run.sh`.
+- Fixed `scripts/benchmark.sh` to retain reasoning-only responses and report latency, draft tokens, accepted draft tokens, and acceptance rate.
+- Held `q8_0/turbo3`, `n-cpu-moe=0`, batch/ubatch `1024/1024`, 10 threads, seed 42, a 38-token coding prompt, and 512 generated tokens constant. Each case ran twice.
+- Practical replacement A/B (`kat-coder` without speculation vs MTP with `draft-mtp,ngram-mod`):
+
+  | Context | Original tok/s | MTP tok/s | Gain | Acceptance |
+  |---:|---:|---:|---:|---:|
+  | 65,536 | 55.00 | 63.37 | +15.2% | 96.7% |
+  | 98,304 | 55.48 | 63.62 | +14.7% | 96.7% |
+  | 131,072 | 55.41 | 64.24 | +15.9% | 96.7% |
+
+- MTP-file matrix winners: `draft-mtp,ngram-mod` at 65,536 (63.37 tok/s), `draft-mtp` at 98,304 (69.45 tok/s), and `draft-mtp` at 131,072 (64.54 tok/s, effectively tied with the other modes given two-run noise).
+- `ngram-mod` alone did not help this novel coding prompt. Combined MTP + ngram beat ngram-only by 13.5% at 65k, lost 1.2% at 98k, and gained 1.3% at 131k.
+- All configured contexts loaded and completed. This benchmark used a short prompt and therefore does not prove near-window 131k prompt throughput. Detailed runs and aggregates are in `results/mtp-benchmark-results.json`.
+- Port 8000 is free. The existing `kat-coder` local 98,304-token winner remains unchanged.
+
+### Real video-preextractor prompt
+
+- Compared the original model and `kat-coder-mtp` at 65,536 configured context using a 297-token production-style PyTorchVideo pre-extractor request and an 8,192-token output allowance.
+- Original: 8,192 completion tokens, 58.21 tok/s, 141.0 seconds, and `finish_reason=length`. Its main implementation block parsed, but the response was truncated during tests.
+- MTP + ngram: 2,391 completion tokens, 65.61 tok/s, 36.8 seconds, 95.3% draft acceptance, and `finish_reason=stop`. It was 12.7% faster, but stopped mid-function with malformed tool markup and omitted the CLI/tests.
+- Neither response was runnable. Both used invalid documented PyTorchVideo calls: `EncodedVideo(path)` rather than `EncodedVideo.from_path(path)`, plus unsupported `get_clip` keyword arguments. The original also assumed unavailable metadata attributes.
+- Saved the complete prompt, responses, timings, and assessment in `results/mtp-video-preextractor-results.json`.
+- Skipped the tentative 98,304-context repeat: the request used only 297 prompt tokens, so a larger configured KV window would not fix API hallucinations or truncation. Repeat only if context-dependent throughput is specifically needed.
+
+## Sequential Pi coding subagents — 2026-08-08
+
+- Added `kat-coder` and `kat-coder-mtp` to `~/.pi/agent/models.json` and the checked-in `config/pi-models.example.json`. Both use the localhost OpenAI-compatible provider; only one server was loaded at a time.
+- Ran independent `pi --mode json` coding agents at 65,536 context in isolated workspaces with the same video-preextractor prompt and read/write/edit/bash tools.
+- Original agent: 25.95 minutes, 24 assistant turns, 49 tool calls, 14 tool errors, and 15 self-authored tests passing.
+- MTP agent: 5.06 minutes, 8 assistant turns, 17 tool calls, 2 tool errors, and 22 self-authored tests passing. The full agent loop was 5.13x faster than the original run.
+- Independent review rejected both implementations despite their green tests. The tests mocked each model's invented video API rather than the documented contract.
+- Original used nonexistent `EncodedVideo.from_file`, `get_video_info`, and `decode_video` methods, used an invalid interpolation mode for 5D tensors, and ignored `--workers`.
+- MTP used `EncodedVideo(path)` and unsupported frame-based `get_clip` arguments, emitted `T x C x H x W` while claiming `C x T x H x W`, passed an integer descriptor to `torch.save`, ignored `--workers`, and contained vacuous resume tests.
+- The documented interface is `EncodedVideo.from_path(path)` followed by `get_clip(start_sec, end_sec)`. Passing mocked tests therefore did not establish real PyTorchVideo compatibility.
+- Preserved each workspace, final response, run metadata, and the independent review under `results/pi-subagents/`; aggregate: `results/pi-subagents/summary.json`. Port 8000 is free.
