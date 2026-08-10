@@ -61,6 +61,33 @@ Models are stored under ignored `models/`. Generated runs are stored under `resu
 
 `benchmark.sh` sends the fixed prompt in `config/prompts/benchmark.txt` to a running server and writes JSON containing the model/profile, quant file, context, hardware, memory, prompt throughput, generation throughput, speculative acceptance, and response. This is a throughput smoke benchmark, not a quality leaderboard.
 
+## Mac results
+
+On an Apple M5 Pro, the measured winner kept every MoE layer on Metal and used 10 performance-core threads, `q8_0/turbo3` KV cache, and `1024/1024` batch/ubatch.
+
+| Configured context | Actual prompt | Prompt processing | Generation | Process RSS |
+|---:|---:|---:|---:|---:|
+| 65,536 | 60,504 | 372.14 tok/s | **30.91 tok/s** | 13.63 GiB |
+| 98,304 | 90,751 | 229.16 tok/s | **22.80 tok/s** | 13.97 GiB |
+
+CPU MoE offload did not help: even 8 offloaded layers reduced generation by about 16% at both contexts, while RSS stayed effectively unchanged.
+
+![CPU MoE generation throughput](results/plots/cpu_moe_generation.png)
+
+![CPU MoE prompt throughput](results/plots/cpu_moe_prompt.png)
+
+## Linux/NVIDIA reference graphs
+
+These plots show the earlier KAT-Coder I-Mini measurements on an RTX 4050 Max-Q. The hardware and fixed configuration are included in each chart.
+
+![Memory scaling and throughput across context sizes](results/plots/full_comparison.png)
+
+![Context vs VRAM and RSS](results/plots/context_vs_memory.png)
+
+![Context vs prompt and generation throughput](results/plots/context_vs_throughput.png)
+
+![KV cache comparison at 65k context](results/plots/kv_cache_comparison.png)
+
 ## KAT-Coder MTP benchmark
 
 The `kat-coder-mtp` profile uses the embedded MTP head with the publisher's recommended `draft-mtp,ngram-mod` configuration. Two deterministic 512-token runs were measured at each configured context with `q8_0/turbo3`, full Metal offload, and a 38-token coding prompt.
