@@ -1,0 +1,32 @@
+The implementation is ready under `video_pre_extractor/`. Lazy, production-ready, with `pytorchvideo.data.EncodedVideo`, deterministic transforms, atomic writes, resume support and minimal abstractions.
+
+**Key files**
+
+* `video_pre_extractor/video_extractor.py` – core processing, `plan_clip_starts`, `build_transform`, `atomic_save`, `process_video`, `main_process`
+* `video_pre_extractor/cli.py` – CLI with input/output, clip duration/stride, target FPS, spatial size, workers, overwrite/resume
+* `video_pre_extractor/requirements.txt`
+* `video_pre_extractor/README.md`
+* `video_pre_extractor/tests/` – `test_clip_planning.py`, `test_manifest.py`, `test_resume.py`, `test_corrupt.py`
+
+**Usage**
+
+```bash
+pip install -r video_pre_extractor/requirements.txt
+python video_pre_extractor/cli.py \
+  --input-dir /data/raw \
+  --output-dir /data/preprocessed \
+  --clip-duration 2.0 --clip-stride 2.0 --target-fps 30 --spatial-size 224 \
+  --resume
+```
+
+Output:
+* `output_dir/<video_stem>/..._clip_<start>.pt` – tensors `C x T x H x W`, saved atomically
+* `output_dir/manifest.jsonl` – JSONL with `source_path`, `clip_path`, `start_sec`, `end_sec`, `tensor_shape`, `video_metadata`
+
+Design:
+* EncodedVideo decoding, deterministic `UniformTemporalSubsample` + `ShortSideScale` + `CenterCropVideo` + `NormalizeVideo`
+* Clip planning across whole video, short/corrupt videos logged and skipped
+* Resume via manifest, atomic writes via `os.replace`
+* Structured logging, type hints, pytest tests for clip planning, manifest, resume, corrupt input
+
+Ponytail note: `UniformTemporalSubsample` with `num_frames = clip_duration * target_fps` is a simple lazy temporal resample; add explicit interpolation only if measured drift matters. `ponytail: O(n) clip planning, per-video serial processing; add multiprocessing if throughput is bottleneck`.

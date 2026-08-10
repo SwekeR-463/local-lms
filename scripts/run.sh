@@ -51,6 +51,15 @@ add_flag_value "--ubatch-size" "${UBATCH_SIZE:-$(default_batch_size)}"
 add_flag_value "--batch-size" "${BATCH_SIZE:-$(default_batch_size)}"
 add_flag_value "--n-cpu-moe" "${N_CPU_MOE:-$(default_cpu_moe)}"
 add_flag_value "--seed" "${SEED:-42}"
+[[ -z "${TEMPERATURE:-}" ]] || add_flag_value "--temp" "${TEMPERATURE}"
+[[ -z "${TOP_P:-}" ]] || add_flag_value "--top-p" "${TOP_P}"
+[[ -z "${TOP_K:-}" ]] || add_flag_value "--top-k" "${TOP_K}"
+if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
+    DRAFT_MODEL_DIR="$(project_path "${DRAFT_MODEL_DIR:-models}")"
+    DRAFT_MODEL="${DRAFT_MODEL_DIR}/$(basename "${DRAFT_MODEL_FILE}")"
+    [[ -f "${DRAFT_MODEL}" ]] || die "draft model does not exist: ${DRAFT_MODEL}"
+    add_flag_value "--model-draft" "${DRAFT_MODEL}"
+fi
 if [[ -n "${SPEC_TYPE:-}" ]]; then
     add_flag_value "--spec-type" "${SPEC_TYPE}"
     add_flag_value "--spec-draft-n-max" "${SPEC_DRAFT_N_MAX:-1}"

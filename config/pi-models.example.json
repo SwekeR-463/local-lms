@@ -39,6 +39,13 @@
           "compat": {
             "thinkingFormat": "qwen-chat-template"
           }
+        },
+        {
+          "id": "muse-glimmer-dflash",
+          "name": "Muse Glimmer 30B UD-Q2_K_XL + DFlash (local)",
+          "reasoning": true,
+          "contextWindow": 65536,
+          "maxTokens": 16384
         }
       ]
     }
