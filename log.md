@@ -188,3 +188,13 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - MTP used `EncodedVideo(path)` and unsupported frame-based `get_clip` arguments, emitted `T x C x H x W` while claiming `C x T x H x W`, passed an integer descriptor to `torch.save`, ignored `--workers`, and contained vacuous resume tests.
 - The documented interface is `EncodedVideo.from_path(path)` followed by `get_clip(start_sec, end_sec)`. Passing mocked tests therefore did not establish real PyTorchVideo compatibility.
 - Preserved each workspace, final response, run metadata, and the independent review under `results/pi-subagents/`; aggregate: `results/pi-subagents/summary.json`. Port 8000 is free.
+
+## Failed Qwen3.6 27B Q3_K_M MTP experiment — 2026-08-08
+
+- Tested separate baseline and MTP Q3_K_M GGUFs from `unsloth/Qwen3.6-27B-GGUF` and `unsloth/Qwen3.6-27B-MTP-GGUF` on the M5 Pro.
+- Held 65,536 context, full Metal offload, Flash Attention, one server slot, `f16/f16` KV cache, a 38-token prompt, and 512 generated tokens constant. MTP used `--spec-type draft-mtp --spec-draft-n-max 2`.
+- Baseline generation runs measured 15.24 and 13.22 tok/s, averaging **14.23 tok/s**.
+- MTP generation runs measured 8.63 and 8.25 tok/s, averaging **8.44 tok/s**, despite **95.2% mean draft acceptance**. MTP was therefore **40.7% slower** than baseline with this TurboQuant llama.cpp build on Metal.
+- The baseline Pi coding agent completed the same isolated video-preextractor task in 26.68 minutes with 25 tool calls and 21 self-authored tests passing. It correctly used `EncodedVideo.from_path(path)` and `get_clip(start_sec, end_sec)`, but explicitly left `--workers` unused; the mocked suite was not treated as real integration proof.
+- The MTP Pi coding-agent run was stopped before completion at user request to avoid further sustained load on a work laptop. No coding-quality comparison was claimed.
+- The experiment branch, Qwen profiles, generated Qwen results, and Pi entries were discarded. All downloaded GGUF files, including the prior KAT-Coder files, were deleted; `models/` is empty and port 8000 is free.
