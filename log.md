@@ -198,3 +198,39 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - The baseline Pi coding agent completed the same isolated video-preextractor task in 26.68 minutes with 25 tool calls and 21 self-authored tests passing. It correctly used `EncodedVideo.from_path(path)` and `get_clip(start_sec, end_sec)`, but explicitly left `--workers` unused; the mocked suite was not treated as real integration proof.
 - The MTP Pi coding-agent run was stopped before completion at user request to avoid further sustained load on a work laptop. No coding-quality comparison was claimed.
 - The experiment branch, Qwen profiles, generated Qwen results, and Pi entries were discarded. All downloaded GGUF files, including the prior KAT-Coder files, were deleted; `models/` is empty and port 8000 is free.
+
+- `2026-08-10 22:01:09 IST` — muse-glimmer: model resolver selected Muse-Glimmer-30B-UD-Q2_K_XL.gguf (12444212256 bytes)
+
+- `2026-08-10 22:01:51 IST` — preflight completed; report saved at results/preflight-20260810-220151.txt
+
+- `2026-08-10 22:01:52 IST` — muse-glimmer: server started with PID 69555; log results/server-20260810-220151.log
+
+- `2026-08-10 22:04:31 IST` — stopped project server PID 69555
+
+- `2026-08-10 22:04:34 IST` — preflight completed; report saved at results/preflight-20260810-220433.txt
+
+- `2026-08-10 22:04:35 IST` — muse-glimmer: server started with PID 70325; log results/server-20260810-220434.log
+
+- `2026-08-10 22:07:17 IST` — stopped project server PID 70325
+
+- `2026-08-10 22:07:20 IST` — preflight completed; report saved at results/preflight-20260810-220719.txt
+
+- `2026-08-10 22:07:22 IST` — muse-glimmer-dflash: server started with PID 71130; log results/server-20260810-220721.log
+
+- `2026-08-10 22:25:51 IST` — stopped project server PID 71130
+
+## Muse Glimmer 30B DFlash experiment — 2026-08-10
+
+- Built latest upstream llama.cpp commit `dd1ea524333b1e697489067d7a4c39c60d32beee` with Metal because the pinned TurboQuant fork does not yet contain the `muse-glimmer` architecture. TurboQuant remains untouched.
+- Downloaded and verified `Muse-Glimmer-30B-UD-Q2_K_XL.gguf` (12,444,212,256 bytes / 11.59 GiB) and Meta's `dflash-kquant.gguf` (1,631,205,312 bytes / 1.52 GiB).
+- Added baseline and DFlash profiles plus optional external draft-model and model-specific sampling support in `scripts/run.sh`. Meta's recommended `temperature=1.0`, `top_p=0.95`, and `top_k=64` are stored in the profiles.
+- Both modes loaded successfully at 65,536 configured context with full Metal, Flash Attention, one slot, and `f16/f16` KV cache.
+- After one warm-up, baseline measured 11.42 and 11.41 tok/s (**11.42 tok/s mean**). DFlash measured 12.86 and 13.28 tok/s (**13.07 tok/s mean**), a **14.5% gain** with **87.5% draft acceptance** and 4.54 accepted-token mean draft length.
+- All six benchmark responses had the same SHA-256, confirming deterministic output parity. DFlash increased RSS from 12.69 GiB to 14.52 GiB.
+- The isolated 65k Pi coding agent completed in 11.16 minutes with 14 assistant turns, 13 tool calls, and no tool errors. It used the documented `EncodedVideo.from_path(path)` and `get_clip(start_sec, end_sec)` API and did not falsely report passing tests.
+- Independent review did not accept the generated implementation as production-ready: `--workers` was missing, fractional starts and duplicate source basenames can collide, overwrite leaves stale manifest entries, and resume/corruption tests do not exercise those behaviors. Pytest collection also could not run because torch is not installed locally.
+- Machine-readable benchmark: `results/muse-glimmer-dflash-results.json`; chart: `results/plots/muse_glimmer_dflash.png`. Agent workspace and review: `results/pi-subagents/muse-glimmer-dflash/`. Server stopped; port 8000 is free.
+
+- `2026-08-10 22:31:11 IST` — muse-glimmer-dflash: model resolver selected Muse-Glimmer-30B-UD-Q2_K_XL.gguf (12444212256 bytes)
+
+- `2026-08-10 22:31:12 IST` — muse-glimmer-dflash: draft model ready: dflash-kquant.gguf (1631205312 bytes)

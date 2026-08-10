@@ -84,6 +84,12 @@ log "Destination: ${OUTPUT_PATH}"
 if ((RESOLVE_ONLY)); then
     REMOTE_SIZE="$(curl --fail --silent --show-error --location --head "${DOWNLOAD_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
     log "Remote size: ${REMOTE_SIZE} bytes"
+    if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
+        [[ -n "${DRAFT_MODEL_REPO:-}" ]] || die "DRAFT_MODEL_REPO is required with DRAFT_MODEL_FILE"
+        DRAFT_URL="https://huggingface.co/${DRAFT_MODEL_REPO}/resolve/main/${DRAFT_MODEL_FILE}?download=true"
+        DRAFT_REMOTE_SIZE="$(curl --fail --silent --show-error --location --head "${DRAFT_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
+        log "Draft model: ${DRAFT_MODEL_FILE} (${DRAFT_REMOTE_SIZE} bytes)"
+    fi
     exit 0
 fi
 
@@ -119,3 +125,26 @@ jq -n \
 
 log "Model ready: $(human_bytes "${MODEL_BYTES}")"
 record_log "${MODEL_ID}: model resolver selected ${MODEL_FILE_RESOLVED} (${MODEL_BYTES} bytes)"
+
+if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
+    [[ -n "${DRAFT_MODEL_REPO:-}" ]] || die "DRAFT_MODEL_REPO is required with DRAFT_MODEL_FILE"
+    DRAFT_DIR="$(project_path "${DRAFT_MODEL_DIR:-${MODEL_DIR}}")"
+    DRAFT_NAME="$(basename "${DRAFT_MODEL_FILE}")"
+    DRAFT_PATH="${DRAFT_DIR}/${DRAFT_NAME}"
+    DRAFT_URL="https://huggingface.co/${DRAFT_MODEL_REPO}/resolve/main/${DRAFT_MODEL_FILE}?download=true"
+    mkdir -p "${DRAFT_DIR}"
+    if [[ -f "${DRAFT_PATH}" && -s "${DRAFT_PATH}" ]]; then
+        log "Draft model already exists; skipping download"
+    else
+        curl --fail --location --continue-at - --output "${DRAFT_PATH}.part" "${DRAFT_URL}"
+        mv "${DRAFT_PATH}.part" "${DRAFT_PATH}"
+    fi
+    DRAFT_BYTES="$(file_size "${DRAFT_PATH}")"
+    DRAFT_SHA256="$(sha256_file "${DRAFT_PATH}")"
+    jq -n --arg id "${MODEL_ID}" --arg repo "${DRAFT_MODEL_REPO}" --arg file "${DRAFT_MODEL_FILE}" \
+        --arg path "${DRAFT_PATH}" --arg bytes "${DRAFT_BYTES}" --arg sha256 "${DRAFT_SHA256}" --arg downloaded_at "$(iso_timestamp)" \
+        '{model_id:$id,role:"draft",repository:$repo,filename:$file,path:$path,bytes:($bytes|tonumber),sha256:$sha256,downloaded_at:$downloaded_at}' \
+        >"${RESULTS_DIR}/model-${MODEL_ID}-draft.json"
+    log "Draft model ready: $(human_bytes "${DRAFT_BYTES}")"
+    record_log "${MODEL_ID}: draft model ready: ${DRAFT_MODEL_FILE} (${DRAFT_BYTES} bytes)"
+fi
