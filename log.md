@@ -263,3 +263,35 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - After one warm-up, baseline measured 10.72 and 10.14 tok/s (**10.43 tok/s mean**). MTP measured 11.02 and 10.84 tok/s (**10.93 tok/s mean**), a modest **4.8% gain** with **93.9% draft acceptance**.
 - All six benchmark responses had SHA-256 `c94d52619f9a3e43f7ac0a70a2ba2b0b2caf0d1aa0550687df2fc5471088e706`. A coding-agent comparison was skipped because the 4.8% gain does not justify another sustained run yet.
 - Machine-readable data: `results/qwen36-27b-q2-autotune-results.json` and `results/qwen36-27b-q2-mtp-results.json`; chart: `results/plots/qwen36_q2_mtp.png`. Server stopped; port 8000 is free.
+
+- `2026-08-11 10:55:33 IST` — qwen36-27b-q2-dflash: model resolver selected Qwen3.6-27B-UD-Q2_K_XL.gguf (11849779424 bytes)
+
+- `2026-08-11 10:58:04 IST` — qwen36-27b-q2-dflash: draft model ready: Qwen3.6-27B-DFlash-Q8_0.gguf (1849481440 bytes)
+
+- `2026-08-11 10:58:54 IST` — preflight completed; report saved at results/preflight-20260811-105854.txt
+
+- `2026-08-11 10:58:56 IST` — qwen36-27b-q2-dflash: server started with PID 99460; log results/server-20260811-105855.log
+
+- `2026-08-11 11:05:09 IST` — stopped project server PID 99460
+
+- `2026-08-11 11:05:10 IST` — preflight completed; report saved at results/preflight-20260811-110509.txt
+
+- `2026-08-11 11:05:11 IST` — qwen36-27b-q2-dflash: server started with PID 4649; log results/server-20260811-110510.log
+
+- `2026-08-11 11:09:29 IST` — stopped project server PID 4649
+
+- `2026-08-11 11:09:30 IST` — preflight completed; report saved at results/preflight-20260811-110929.txt
+
+- `2026-08-11 11:09:32 IST` — qwen36-27b-q2: server started with PID 7052; log results/server-20260811-110931.log
+
+- `2026-08-11 11:14:01 IST` — stopped project server PID 7052
+
+## Qwen3.6 27B DFlash experiment — 2026-08-11
+
+- Downloaded Alittlehammmer's recommended `Qwen3.6-27B-DFlash-Q8_0.gguf`: 1,849,481,440 bytes with SHA-256 `23b6c8ebcc51b3b4107709342fd2960167e88397af36e394923b8d5895ddf7ea`.
+- Used the existing plain `UD-Q2_K_XL` target and tuned `f16/f16`, `1024/1024` setup at 65,536 context. DFlash used the publisher's `--spec-type draft-dflash --spec-draft-n-max 6` settings.
+- The drafter initialized successfully. llama.cpp emitted its documented normal warning while probing draft-model memory, then loaded the DFlash context with block size 16 and five extracted tokens.
+- Initial exploratory DFlash runs varied from 18.36 down to 10.53 tok/s despite identical 91.9% acceptance and byte-identical output. These peaks are retained in the JSON but not presented as sustained throughput.
+- Repeated the comparison with a server restart per mode and 30 seconds between requests. After one warm-up, baseline measured 9.38 and 9.70 tok/s (**9.54 tok/s mean**); DFlash measured 10.71 and 10.70 tok/s (**10.71 tok/s mean**).
+- The controlled DFlash gain was **12.2%** with **91.9% acceptance** and 4.17 mean accepted draft length. RSS increased from 15.95 GiB to 18.96 GiB.
+- Machine-readable data: `results/qwen36-27b-q2-dflash-results.json`; chart: `results/plots/qwen36_q2_dflash.png`. No coding-agent run was started. Server stopped; port 8000 is free.
