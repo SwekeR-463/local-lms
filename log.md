@@ -234,3 +234,32 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-08-10 22:31:11 IST` — muse-glimmer-dflash: model resolver selected Muse-Glimmer-30B-UD-Q2_K_XL.gguf (12444212256 bytes)
 
 - `2026-08-10 22:31:12 IST` — muse-glimmer-dflash: draft model ready: dflash-kquant.gguf (1631205312 bytes)
+
+- `2026-08-11 00:01:14 IST` — qwen36-27b-q2: model resolver selected Qwen3.6-27B-UD-Q2_K_XL.gguf (11849779424 bytes)
+
+- `2026-08-11 08:19:59 IST` — qwen36-27b-q2-mtp: model resolver selected Qwen3.6-27B-UD-Q2_K_XL.gguf (12040512640 bytes)
+
+- `2026-08-11 10:21:00 IST` — autotune selected 65536-token configuration; summary saved at results/qwen36-27b-q2-autotune-results.json
+
+- `2026-08-11 10:21:19 IST` — preflight completed; report saved at results/preflight-20260811-102118.txt
+
+- `2026-08-11 10:21:20 IST` — qwen36-27b-q2: server started with PID 83518; log results/server-20260811-102119.log
+
+- `2026-08-11 10:24:11 IST` — stopped project server PID 83518
+
+- `2026-08-11 10:24:11 IST` — preflight completed; report saved at results/preflight-20260811-102411.txt
+
+- `2026-08-11 10:24:12 IST` — qwen36-27b-q2-mtp: server started with PID 84741; log results/server-20260811-102411.log
+
+- `2026-08-11 10:27:15 IST` — stopped project server PID 84741
+
+## Qwen3.6 27B UD-Q2_K_XL MTP experiment — 2026-08-11
+
+- Downloaded and verified the separate Unsloth baseline and MTP GGUFs: 11,849,779,424 bytes with SHA-256 `3db422cf36c7efacb027396a11df287c0fc469829bd7daf1867a3505a9e44af6`, and 12,040,512,640 bytes with SHA-256 `16fb3f81a522faaecfed0402890c3471e970e732c0e3e1914f1c0d9d9253be00`.
+- Used upstream llama.cpp commit `dd1ea524333b1e697489067d7a4c39c60d32beee`, full Metal offload, Flash Attention, one slot, and 65,536 configured context. MTP used the publisher's `--spec-type draft-mtp --spec-draft-n-max 2` settings.
+- Extended `scripts/autotune.sh` so profiles can provide candidate KV/batch matrices and speculative profiles are actually tuned with their draft flags.
+- Ran a nine-candidate baseline autotune over `f16/f16`, `q8_0/f16`, and `q8_0/q8_0` KV cache with `1024/2048` batch and ubatch combinations. The `f16/f16`, `1024/1024` winner processed the 60,504-token prompt at 98.53 tok/s and generated at 9.49 tok/s with 15.90 GiB RSS.
+- The best `q8_0/q8_0` candidate saved about 1.9 GiB RSS but was 9.5% slower for prompt processing and 17.2% slower for generation. All three mixed `q8_0/f16` requests exceeded the 900-second timeout.
+- After one warm-up, baseline measured 10.72 and 10.14 tok/s (**10.43 tok/s mean**). MTP measured 11.02 and 10.84 tok/s (**10.93 tok/s mean**), a modest **4.8% gain** with **93.9% draft acceptance**.
+- All six benchmark responses had SHA-256 `c94d52619f9a3e43f7ac0a70a2ba2b0b2caf0d1aa0550687df2fc5471088e706`. A coding-agent comparison was skipped because the 4.8% gain does not justify another sustained run yet.
+- Machine-readable data: `results/qwen36-27b-q2-autotune-results.json` and `results/qwen36-27b-q2-mtp-results.json`; chart: `results/plots/qwen36_q2_mtp.png`. Server stopped; port 8000 is free.

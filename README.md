@@ -26,11 +26,13 @@ kat-coder
 kat-coder-mtp
 muse-glimmer
 muse-glimmer-dflash
+qwen36-27b-q2
+qwen36-27b-q2-mtp
 qwen3.6-35b-a3b
 qwen3.5-27b
 ```
 
-Qwen3.6 currently has a 35B-A3B release; the included dense 27B profile is Qwen3.5.
+The Qwen3.6 27B profiles require recent upstream llama.cpp; the pinned TurboQuant fork produced slower MTP results in the earlier Q3_K_M experiment.
 
 Add a model by copying a profile:
 
@@ -113,6 +115,21 @@ All three context sizes loaded and completed. These are short-prompt generation 
 A longer 8,192-token video-preextractor prompt exposed quality failures in both models. The original hit the output limit during its tests; MTP stopped after 2,391 tokens in the middle of the implementation. Both hallucinated the PyTorchVideo API (`EncodedVideo(path)` and unsupported `get_clip` arguments instead of the documented `EncodedVideo.from_path(path)` flow). MTP was 12.7% faster, but neither response was runnable. See `results/mtp-video-preextractor-results.json`.
 
 Sequential Pi coding-agent runs reached the same conclusion. MTP completed its tool loop 5.13x faster (5.06 versus 25.95 minutes), but both agents wrote tests around invented APIs and then reported success. Independent review found neither implementation runnable with PyTorchVideo. Workspaces and review data are under `results/pi-subagents/`.
+
+## Qwen3.6 27B Q2 MTP benchmark
+
+Qwen3.6 27B `UD-Q2_K_XL` baseline and MTP GGUFs were tested at 65,536 context using upstream llama.cpp commit `dd1ea524333b1e697489067d7a4c39c60d32beee`. One warm-up and two measured 512-token runs used full Metal offload, Flash Attention, one slot, and the publisher's `draft-mtp` maximum of two draft tokens.
+
+| Mode | Generation | RSS | Draft acceptance |
+|---|---:|---:|---:|
+| Baseline | 10.43 tok/s | 15.95 GiB | — |
+| MTP | **10.93 tok/s** | 15.61 GiB | 93.9% |
+
+![Qwen3.6 Q2 baseline and MTP throughput](results/plots/qwen36_q2_mtp.png)
+
+MTP improved generation by only **4.8%**, despite high acceptance, and all six deterministic responses were byte-identical. This is better than the earlier TurboQuant Q3_K_M result, where MTP was 40.7% slower, but too small to justify a coding-agent comparison yet. Raw aggregates are in `results/qwen36-27b-q2-mtp-results.json`.
+
+A targeted 65k autotune compared three KV combinations and `1024/2048` batch and ubatch sizes. `f16/f16` with `1024/1024` won at 98.53 prompt tok/s and 9.49 generation tok/s on a 60,504-token prompt. The best `q8_0/q8_0` candidate used about 1.9 GiB less RSS but was 9.5% slower for prompt processing and 17.2% slower for generation; mixed `q8_0/f16` candidates exceeded the 900-second request timeout. See `results/qwen36-27b-q2-autotune-results.json`.
 
 ## Muse Glimmer DFlash benchmark
 

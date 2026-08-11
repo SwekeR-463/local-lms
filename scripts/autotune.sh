@@ -83,6 +83,10 @@ else
     ubatch_values=(256 512 1024)
 fi
 
+[[ -z "${AUTOTUNE_KV_PAIRS:-}" ]] || read -r -a kv_pairs <<<"${AUTOTUNE_KV_PAIRS}"
+[[ -z "${AUTOTUNE_BATCH_VALUES:-}" ]] || read -r -a batch_values <<<"${AUTOTUNE_BATCH_VALUES}"
+[[ -z "${AUTOTUNE_UBATCH_VALUES:-}" ]] || read -r -a ubatch_values <<<"${AUTOTUNE_UBATCH_VALUES}"
+
 if ((CPU_MOE_SWEEP)); then
     cpu_moe_values=(0 8 16 24 32 40)
     kv_pairs=("${CACHE_TYPE_K:-q8_0},${CACHE_TYPE_V:-$(default_cache_v)}")
@@ -116,6 +120,15 @@ candidate_args() {
     add_candidate_value --batch-size "${batch}"
     add_candidate_value --n-cpu-moe "${cpu_moe}"
     add_candidate_value --seed "${SEED:-42}"
+    if [[ -n "${SPEC_TYPE:-}" ]]; then
+        add_candidate_value --spec-type "${SPEC_TYPE}"
+        add_candidate_value --spec-draft-n-max "${SPEC_DRAFT_N_MAX:-1}"
+        add_candidate_value --spec-draft-n-min "${SPEC_DRAFT_N_MIN:-0}"
+        add_candidate_value --spec-draft-p-min "${SPEC_DRAFT_P_MIN:-0.75}"
+        add_candidate_value --spec-ngram-mod-n-min "${SPEC_NGRAM_MOD_N_MIN:-8}"
+        add_candidate_value --spec-ngram-mod-n-max "${SPEC_NGRAM_MOD_N_MAX:-24}"
+        add_candidate_value --spec-ngram-mod-n-match "${SPEC_NGRAM_MOD_N_MATCH:-48}"
+    fi
     if has_flag "${HELP}" "-ngl"; then CANDIDATE_ARGS+=(-ngl "${GPU_LAYERS:-99}"); fi
     if has_flag "${HELP}" "-fa"; then CANDIDATE_ARGS+=(-fa on); fi
     if has_flag "${HELP}" "--jinja"; then CANDIDATE_ARGS+=(--jinja); fi
