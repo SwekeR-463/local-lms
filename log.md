@@ -295,3 +295,53 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Repeated the comparison with a server restart per mode and 30 seconds between requests. After one warm-up, baseline measured 9.38 and 9.70 tok/s (**9.54 tok/s mean**); DFlash measured 10.71 and 10.70 tok/s (**10.71 tok/s mean**).
 - The controlled DFlash gain was **12.2%** with **91.9% acceptance** and 4.17 mean accepted draft length. RSS increased from 15.95 GiB to 18.96 GiB.
 - Machine-readable data: `results/qwen36-27b-q2-dflash-results.json`; chart: `results/plots/qwen36_q2_dflash.png`. No coding-agent run was started. Server stopped; port 8000 is free.
+
+- `2026-08-11 12:44:15 IST` — preflight completed; report saved at results/preflight-20260811-124414.txt
+
+- `2026-08-11 12:44:16 IST` — muse-glimmer-dflash: server started with PID 42281; log results/server-20260811-124415.log
+
+- `2026-08-11 13:39:18 IST` — stopped project server PID 42281
+
+- `2026-08-11 14:27:26 IST` — kat-coder: model resolver selected KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf (13467211136 bytes)
+
+- `2026-08-11 14:27:36 IST` — preflight completed; report saved at results/preflight-20260811-142735.txt
+
+- `2026-08-11 14:36:23 IST` — preflight completed; report saved at results/preflight-20260811-143622.txt
+
+- `2026-08-11 14:36:25 IST` — kat-coder: server started with PID 83203; log results/server-20260811-143624.log
+
+- `2026-08-11 16:49:50 IST` — stopped project server PID 83203
+
+- `2026-08-11 17:39:26 IST` — ornith-35b-i-mini: model resolver selected Ornith-1.0-35B-APEX-I-Mini.gguf (13467210752 bytes)
+
+- `2026-08-11 17:39:54 IST` — preflight completed; report saved at results/preflight-20260811-173954.txt
+
+- `2026-08-11 17:39:55 IST` — ornith-35b-i-mini: server started with PID 54112; log results/server-20260811-173954.log
+
+- `2026-08-11 19:42:02 IST` — stopped project server PID 54112
+
+- `2026-08-12 00:01:46 IST` — ling3-tiny-q8: model resolver selected Ling-3.0-tiny-UD-Q8_K_XL.gguf (11188839264 bytes)
+
+- `2026-08-12 00:02:31 IST` — preflight completed; report saved at results/preflight-20260812-000231.txt
+
+- `2026-08-12 00:02:35 IST` — preflight completed; report saved at results/preflight-20260812-000235.txt
+
+- `2026-08-12 00:02:36 IST` — ling3-tiny-q8: server started with PID 3492; log results/server-20260812-000235.log
+
+- `2026-08-12 01:14:04 IST` — stopped project server PID 3492
+
+- `2026-08-12 08:59:14 IST` — preflight completed; report saved at results/preflight-20260812-085912.txt
+
+- `2026-08-12 08:59:16 IST` — ling3-tiny-q8: server started with PID 64879; log results/server-20260812-085915.log
+
+- `2026-08-12 10:17:45 IST` — stopped project server PID 64879
+
+## Ling 3.0 Tiny Q8 experiment — 2026-08-12
+
+- Stock llama.cpp and TurboQuant cannot load Ling's `bailingmoe3` Q-LoRA architecture. Built `aetherbird/llama.cpp` branch `bailingmoe3-support` separately at commit `d8d8625`, preserving both existing runtimes.
+- Downloaded and verified `Ling-3.0-tiny-UD-Q8_K_XL.gguf`: 11,188,839,264 bytes with SHA-256 `4fefbf341330722c97d10f7ce90a9b494663269911ba0d1fc3dbe50f43693e25`.
+- Metal loaded the full **131,072-token context** with `f16/f16` KV, batch/ubatch 1024, all layers offloaded, and one request slot. Idle RSS was about 11.4 GiB.
+- A complete deterministic smoke response generated at **87.99 tok/s** and returned `LING_READY`; a 245-token tool-call prompt processed at **852.21 tok/s**, generated at **88.90 tok/s**, and emitted the correct function and arguments. Pi integration also returned `PI_LING_READY`.
+- The model spends heavily on hidden reasoning. With Pi's original 16,384-token output limit, all three coding tasks exhausted the limit: one wrote no files, one wrote seven incomplete files, and none produced a final answer. Raising the limit to 65,536 still led to long, unproductive loops, so further agent evaluation was stopped.
+- Lesson: high raw generation speed and valid tool-call syntax do not imply efficient autonomous coding. Small reasoning models need an output budget above 16k, but a larger budget can amplify looping rather than improve completion.
+- The local GGUF was deleted after testing. The reusable model profile remains; generated agent artifacts are intentionally ignored under `gen-outputs/`.
