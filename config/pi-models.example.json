@@ -46,6 +46,23 @@
           "reasoning": true,
           "contextWindow": 65536,
           "maxTokens": 16384
+        },
+        {
+          "id": "ornith-35b-i-mini",
+          "name": "Ornith 1.0 35B APEX I-Mini (local)",
+          "reasoning": true,
+          "contextWindow": 98304,
+          "maxTokens": 16384,
+          "compat": {
+            "thinkingFormat": "qwen-chat-template"
+          }
+        },
+        {
+          "id": "ling3-tiny-q8",
+          "name": "Ling 3.0 Tiny UD-Q8_K_XL (local)",
+          "reasoning": true,
+          "contextWindow": 131072,
+          "maxTokens": 65536
         }
       ]
     }

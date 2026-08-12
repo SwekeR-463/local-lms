@@ -16,3 +16,4 @@ results/benchmark-*.json
 results/model-*.json
 results/preflight-*.txt
 eval_results*/
+/gen-outputs/
