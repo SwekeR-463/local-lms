@@ -112,7 +112,7 @@ Current status: **131k context achieved** on RTX 4050 Max-Q with the I-Mini GGUF
 
 ## Apple Silicon tuning — 2026-08-05
 
-- Ported the runner to macOS while retaining Linux/CUDA support. Built TurboQuant commit `0967f499714dd6018494b480b710b849ca45b156` with Metal and Accelerate on an M5 Pro (16 GPU cores, 48 GiB unified memory).
+- Ported the runner to macOS while retaining Linux/CUDA support. Built TurboQuant commit `0967f499714dd6018494b480b710b849ca45b156` with Metal and Accelerate on a Mac (16 GPU cores, 48 GiB unified memory).
 - Downloaded and verified the 12.5 GiB I-Mini model. Short API validation passed.
 - Full 36-candidate Metal search completed: 28 accepted. Best completed configuration was 98,304 context, `q8_0/turbo3`, `n-cpu-moe=0`, batch/ubatch `1024/1024`, 10 threads, and full Metal offload. The long-prompt request took 386 seconds.
 - All 131,072-context candidates hit the old 480-second HTTP timeout; this is not evidence of an out-of-memory or Metal failure. Timeout was raised to 900 seconds and an exact-context retry was added, then the retry was stopped at user request.
@@ -141,7 +141,7 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Full Metal (`n-cpu-moe=0`) won at both contexts. Offloading eight layers reduced generation throughput by ~16%; additional offload generally worsened it. RSS differences were noise-level because CPU and GPU share unified memory.
 - I-Mini remains the selected model per user scope. Current configuration: 98,304 context, `q8_0/turbo3`, `n-cpu-moe=0`, `1024/1024`, 10 threads.
 - Raw runs: `results/cpu-moe-run1.json`, `results/cpu-moe-run2.json`. Aggregate: `results/cpu-moe-results.json`. Charts: `results/plots/cpu_moe_generation.png` and `results/plots/cpu_moe_prompt.png`.
-- `README.md` now contains the measured M5 Pro results and charts.
+- `README.md` now contains the measured Mac results and charts.
 
 ## General-purpose workbench refactor — 2026-08-08
 
@@ -191,7 +191,7 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 
 ## Failed Qwen3.6 27B Q3_K_M MTP experiment — 2026-08-08
 
-- Tested separate baseline and MTP Q3_K_M GGUFs from `unsloth/Qwen3.6-27B-GGUF` and `unsloth/Qwen3.6-27B-MTP-GGUF` on the M5 Pro.
+- Tested separate baseline and MTP Q3_K_M GGUFs from `unsloth/Qwen3.6-27B-GGUF` and `unsloth/Qwen3.6-27B-MTP-GGUF` on the Mac.
 - Held 65,536 context, full Metal offload, Flash Attention, one server slot, `f16/f16` KV cache, a 38-token prompt, and 512 generated tokens constant. MTP used `--spec-type draft-mtp --spec-draft-n-max 2`.
 - Baseline generation runs measured 15.24 and 13.22 tok/s, averaging **14.23 tok/s**.
 - MTP generation runs measured 8.63 and 8.25 tok/s, averaging **8.44 tok/s**, despite **95.2% mean draft acceptance**. MTP was therefore **40.7% slower** than baseline with this TurboQuant llama.cpp build on Metal.
@@ -392,3 +392,16 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-08-12 18:05:08 IST` — stopped project server PID 70117
 
 - `2026-08-12` — added the flattened `results/plots/btl4_compact_summary.png` two-panel chart covering measured runtime and autonomous versus supervised coding assessment; source measurements are preserved in `results/btl-4-compact-results.json`.
+
+### BTL-4 CSV classification metrics task
+
+- Ran a fresh 65,536-context one-shot task asking for a Python CSV metrics CLI and PNG graphs for accuracy, precision, recall, F1, and false positives, with binary/multiclass support and synthetic tests.
+- Stopped after the 30-minute harness timeout. The model made 242 tool calls with seven tool errors, compacted context three times, and never produced a final response.
+- Independent validation rejected the output. `tests.py` has a syntax error; binary string labels are passed to sklearn without a `pos_label`; false positives are always `None`; multiclass plot values are assigned to the wrong bars; and no PNG was successfully generated.
+- Lesson: even a smaller, familiar data-analysis task triggered prolonged edit loops at 64k. BTL-4's strong raw speed and tool syntax still do not translate into reliable autonomous completion.
+
+- `2026-08-12 18:42:24 IST` — preflight completed; report saved at results/preflight-20260812-184223.txt
+
+- `2026-08-12 18:42:25 IST` — btl-4-compact: server started with PID 99512; log results/server-20260812-184224.log
+
+- `2026-08-12 19:13:59 IST` — stopped project server PID 99512

@@ -71,7 +71,7 @@ Models are stored under ignored `models/`. Generated runs are stored under `resu
 
 ## Mac results
 
-On an Apple M5 Pro, the measured winner kept every MoE layer on Metal and used 10 performance-core threads, `q8_0/turbo3` KV cache, and `1024/1024` batch/ubatch.
+On a Mac, the measured winner kept every MoE layer on Metal and used 10 performance-core threads, `q8_0/turbo3` KV cache, and `1024/1024` batch/ubatch.
 
 | Configured context | Actual prompt | Prompt processing | Generation | Process RSS |
 |---:|---:|---:|---:|---:|
@@ -148,7 +148,7 @@ DFlash gained **12.2%** in the controlled pair and preserved byte-identical outp
 
 ## Muse Glimmer DFlash benchmark
 
-Muse Glimmer 30B `UD-Q2_K_XL` was tested on the M5 Pro at 65,536 configured context using upstream llama.cpp commit `dd1ea524333b1e697489067d7a4c39c60d32beee`. The target GGUF is 11.59 GiB; Meta's DFlash drafter adds 1.52 GiB. One warm-up and two measured 512-token runs used full Metal offload, Flash Attention, one slot, and `f16/f16` KV cache.
+Muse Glimmer 30B `UD-Q2_K_XL` was tested on the Mac at 65,536 configured context using upstream llama.cpp commit `dd1ea524333b1e697489067d7a4c39c60d32beee`. The target GGUF is 11.59 GiB; Meta's DFlash drafter adds 1.52 GiB. One warm-up and two measured 512-token runs used full Metal offload, Flash Attention, one slot, and `f16/f16` KV cache.
 
 | Mode | Generation | RSS | Draft acceptance |
 |---|---:|---:|---:|
@@ -173,7 +173,7 @@ scripts/run.sh btl-4-compact
 pi --provider local-workbench --model btl-4-compact
 ```
 
-On the M5 Pro, a 32k smoke test generated at **71.41 tok/s**, used about **9.82 GiB RSS** after loading, returned the requested exact response, and emitted a correct OpenAI-compatible tool call. At 65k, idle RSS was about **10.16 GiB** and peak observed RSS during the coding run was about **10.54 GiB**.
+On the Mac, a 32k smoke test generated at **71.41 tok/s**, used about **9.82 GiB RSS** after loading, returned the requested exact response, and emitted a correct OpenAI-compatible tool call. At 65k, idle RSS was about **10.16 GiB** and peak observed RSS during the coding run was about **10.54 GiB**.
 
 The 65k direct-prompt agent completed a TypeScript project in 7.94 minutes without context compaction. Five supervised correction rounds made its mocked tests and TypeScript checks pass, but independent review still rejected the production path: face detection and ffmpeg trimming remained placeholders, command execution used a shell, and destination key construction was wrong. BTL-4 is promising as a fast supervised pair programmer, not a production-reliable autonomous agent; subjective assessment is **4/10 autonomous, 6/10 with five-round supervision**.
 

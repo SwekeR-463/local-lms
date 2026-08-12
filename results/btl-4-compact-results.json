@@ -1,7 +1,7 @@
 {
   "model_id": "btl-4-compact",
   "model": "BTL-4 Compact IQ2_XXS",
-  "hardware": "Apple M5 Pro, 48 GiB unified memory",
+  "hardware": "Mac, 48 GiB unified memory",
   "runtime": "llama.cpp dd1ea524333b1e697489067d7a4c39c60d32beee",
   "measurements": [
     {
