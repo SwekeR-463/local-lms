@@ -177,6 +177,10 @@ On the M5 Pro, a 32k smoke test generated at **71.41 tok/s**, used about **9.82 
 
 The 65k direct-prompt agent completed a TypeScript project in 7.94 minutes without context compaction. Five supervised correction rounds made its mocked tests and TypeScript checks pass, but independent review still rejected the production path: face detection and ffmpeg trimming remained placeholders, command execution used a shell, and destination key construction was wrong. BTL-4 is promising as a fast supervised pair programmer, not a production-reliable autonomous agent; current assessment is **4/10 autonomous, 5/10 supervised**.
 
+![BTL-4 Compact runtime and coding-agent assessment](results/plots/btl4_compact_summary.png)
+
+The chart intentionally leaves 64k generation blank because no controlled 64k throughput smoke benchmark was run. Machine-readable measurements are in `results/btl-4-compact-results.json`.
+
 `--jinja` and `--reasoning-format deepseek` are required for this model's tool-call template and reasoning separation. `scripts/run.sh` reads the latter from `REASONING_FORMAT` in the profile.
 
 ## Use a model with Pi

@@ -390,3 +390,5 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-08-12 17:28:16 IST` — btl-4-compact: server started with PID 70117; log results/server-20260812-172815.log
 
 - `2026-08-12 18:05:08 IST` — stopped project server PID 70117
+
+- `2026-08-12` — added the flattened `results/plots/btl4_compact_summary.png` two-panel chart covering measured runtime and autonomous versus supervised coding assessment; source measurements are preserved in `results/btl-4-compact-results.json`.
