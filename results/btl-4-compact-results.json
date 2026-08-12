@@ -17,7 +17,8 @@
   ],
   "coding_assessment": {
     "autonomous_rating_out_of_10": 4,
-    "supervised_rating_out_of_10": 5,
+    "supervised_rating_out_of_10": 6,
+    "rating_basis": "subjective assessment",
     "independent_verdict": "rejected",
     "supervision_rounds": 5
   }
