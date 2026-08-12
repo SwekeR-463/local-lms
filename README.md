@@ -22,10 +22,13 @@ Omit the model ID to use `DEFAULT_MODEL` from `config/default.env`.
 ## Included profiles
 
 ```text
+btl-4-compact
 kat-coder
 kat-coder-mtp
+ling3-tiny-q8
 muse-glimmer
 muse-glimmer-dflash
+ornith-35b-i-mini
 qwen36-27b-q2
 qwen36-27b-q2-mtp
 qwen36-27b-q2-dflash
@@ -33,7 +36,7 @@ qwen3.6-35b-a3b
 qwen3.5-27b
 ```
 
-The Qwen3.6 27B profiles require recent upstream llama.cpp; the pinned TurboQuant fork produced slower MTP results in the earlier Q3_K_M experiment.
+BTL-4 Compact and the Qwen3.6 27B profiles require recent upstream llama.cpp. The pinned TurboQuant fork produced slower MTP results in the earlier Qwen Q3_K_M experiment.
 
 Add a model by copying a profile:
 
@@ -159,6 +162,22 @@ DFlash improved generation by **14.5%** and produced byte-identical deterministi
 An isolated Pi coding agent completed the video-preextractor task in 11.16 minutes with 13 tool calls and no tool errors. It used the documented PyTorchVideo API correctly, unlike the earlier KAT agents, but independent review still found missing worker support, filename collisions, stale overwrite manifests, and vacuous resume/corruption tests. The workspace and review are under `results/pi-subagents/muse-glimmer-dflash/`.
 
 Muse Glimmer requires a recent upstream llama.cpp with the `muse-glimmer` architecture; the pinned TurboQuant commit does not load it. `scripts/download-model.sh muse-glimmer-dflash` resolves both the target and companion draft GGUF. The DFlash profile uses `--model-draft`, `--spec-type draft-dflash`, and `--spec-draft-n-max 15`.
+
+## BTL-4 Compact
+
+[BTL-4 Compact](https://huggingface.co/badtheorylabs/BTL-4-Compact) packages the 35.1B-parameter, roughly 2.1B-active MoE as a 9.3 GiB `IQ2_XXS` GGUF. It requires recent upstream llama.cpp with `qwen35moe` support. The included profile runs at 65,536 context with q8_0 K/V cache and the model card's required Jinja and DeepSeek reasoning settings:
+
+```bash
+scripts/download-model.sh btl-4-compact
+scripts/run.sh btl-4-compact
+pi --provider local-workbench --model btl-4-compact
+```
+
+On the M5 Pro, a 32k smoke test generated at **71.41 tok/s**, used about **9.82 GiB RSS** after loading, returned the requested exact response, and emitted a correct OpenAI-compatible tool call. At 65k, idle RSS was about **10.16 GiB** and peak observed RSS during the coding run was about **10.54 GiB**.
+
+The 65k direct-prompt agent completed a TypeScript project in 7.94 minutes without context compaction. Five supervised correction rounds made its mocked tests and TypeScript checks pass, but independent review still rejected the production path: face detection and ffmpeg trimming remained placeholders, command execution used a shell, and destination key construction was wrong. BTL-4 is promising as a fast supervised pair programmer, not a production-reliable autonomous agent; current assessment is **4/10 autonomous, 5/10 supervised**.
+
+`--jinja` and `--reasoning-format deepseek` are required for this model's tool-call template and reasoning separation. `scripts/run.sh` reads the latter from `REASONING_FORMAT` in the profile.
 
 ## Use a model with Pi
 

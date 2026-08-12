@@ -345,3 +345,48 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - The model spends heavily on hidden reasoning. With Pi's original 16,384-token output limit, all three coding tasks exhausted the limit: one wrote no files, one wrote seven incomplete files, and none produced a final answer. Raising the limit to 65,536 still led to long, unproductive loops, so further agent evaluation was stopped.
 - Lesson: high raw generation speed and valid tool-call syntax do not imply efficient autonomous coding. Small reasoning models need an output budget above 16k, but a larger budget can amplify looping rather than improve completion.
 - The local GGUF was deleted after testing. The reusable model profile remains; generated agent artifacts are intentionally ignored under `gen-outputs/`.
+
+- `2026-08-12 16:16:02 IST` — btl-4-compact: model resolver selected BTL-4-IQ2_XXS.gguf (9967966240 bytes)
+
+## BTL-4 Compact IQ2_XXS experiment — 2026-08-12
+
+- Downloaded and verified `BTL-4-IQ2_XXS.gguf`: 9,967,966,240 bytes with SHA-256 `6b7c298cf909fc04428ecf360a29dcc578188b1c90aa6ed435159f5a0d351496`.
+- Loaded at 32,768 context on Metal with q8_0/q8_0 KV, `--jinja`, and `--reasoning-format deepseek`. Idle RSS was about 9.82 GiB; `/v1/models` reported the native 262,144-token training context and 34.66B parameters.
+- Chat smoke test returned exactly `BTL_READY` at 71.41 generation tok/s. Tool-call smoke test correctly called `lookup_status` with `{"job_id":"abc123"}` at 71.28 generation tok/s and separated reasoning from content.
+- The in-flight processor Pi task ran for 900.78 seconds with five tool calls and two tool errors. It hit the output limit four times, compacted context twice, wrote only two duplicate/incomplete Python modules, produced no tests or documentation, and gave no final response.
+- Independent review rejected the implementation: missing runtime imports, an ffmpeg output path without a usable extension/format, ignored `--dry-run`, incorrect S3 missing-object handling, and per-key validation errors that abort the whole run.
+- Lesson: BTL-4 is fast and its advertised chat/tool template works, but this 32k autonomous coding run repeated the same failure mode seen in other reasoning models: token-heavy planning and rewriting displaced completion and verification.
+
+- `2026-08-12 16:16:09 IST` — preflight completed; report saved at results/preflight-20260812-161608.txt
+
+- `2026-08-12 16:16:10 IST` — btl-4-compact: server started with PID 43836; log results/server-20260812-161609.log
+
+- `2026-08-12 16:33:09 IST` — stopped project server PID 43836
+
+- `2026-08-12 17:13:56 IST` — preflight completed; report saved at results/preflight-20260812-171356.txt
+
+- `2026-08-12 17:13:58 IST` — btl-4-compact: server started with PID 64338; log results/server-20260812-171357.log
+
+- `2026-08-12 17:23:13 IST` — stopped project server PID 64338
+
+### BTL-4 64k direct-prompt coding run
+
+- Reloaded BTL-4 at 65,536 context with q8_0/q8_0 KV. Idle RSS was about 10.16 GiB and peak observed RSS after the agent run was about 10.54 GiB.
+- Used only this two-line prompt: create an in-flight S3 processor that trims clips based on human-face presence and uploads them to another bucket; implement and test without AWS or real video processing.
+- Pi completed in 476.21 seconds with 52 tool calls, 12 tool errors, no context compaction, and a final response. Unlike the detailed 32k attempt, it produced a complete-looking TypeScript project and stayed within context.
+- Independent validation rejected it. `npm test` fails with `ERR_MODULE_NOT_FOUND`; both real face detection and real trimming only throw; the real S3 client ignores configured buckets and mis-parses keys; the no-face test always reports a face and has no assertions.
+- Lesson: 64k context plus a direct prompt improved task completion and artifact coverage, but not correctness. The model recovered repeatedly from build errors and then claimed success despite leaving the documented test command broken and core production paths unimplemented.
+
+### BTL-4 supervised repair — five rounds
+
+- Ran five short correction rounds against the same Pi session: test runner/assertions, a repeated module-resolution correction, an exact NodeNext compile/run instruction, S3 bucket/key handling, and finally real face-detection/ffmpeg command paths.
+- Rounds 1 and 2 both exhausted their output allowance and left the same `ERR_MODULE_NOT_FOUND` failure. Round 3 followed the explicit compile-then-run direction and made `npm test` pass with face/no-face assertions. Round 4 normalized configured S3 buckets and used them in AWS commands.
+- Across the rounds the model made 55 tool calls with 14 tool errors. Final independent checks passed `npm test` and `npx tsc --noEmit`.
+- The final result remains rejected. Despite an explicit fifth-round instruction, `RealFaceDetector` and `RealVideoTrimmer` still unconditionally throw, `RealCommandExecutor` uses shell-interpolated `exec`, the destination bucket is duplicated into the uploaded object key, and the new tests do not inspect actual AWS command inputs or production command construction.
+- Lesson: focused back-and-forth can repair mechanical build/test failures, but five supervised turns did not overcome BTL-4's tendency to substitute mocks for required production behavior and declare success after partial compliance.
+
+- `2026-08-12 17:28:15 IST` — preflight completed; report saved at results/preflight-20260812-172814.txt
+
+- `2026-08-12 17:28:16 IST` — btl-4-compact: server started with PID 70117; log results/server-20260812-172815.log
+
+- `2026-08-12 18:05:08 IST` — stopped project server PID 70117
