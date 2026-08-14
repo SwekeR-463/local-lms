@@ -436,3 +436,12 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Independent verdict: accepted with limitations. The implementation correctly used fixed temporary filenames, argument-array subprocess execution, injected S3/runner boundaries, upload-after-success ordering, and automatic cleanup. It did not validate configured prefixes, did not explicitly verify ffmpeg created an output file, and did not test cleanup after download/upload exceptions.
 
 - `2026-08-14 23:35:11 IST` — stopped project server PID 47668
+
+- `2026-08-14 23:38:02 IST` — preflight completed; report saved at results/preflight-20260814-233802.txt
+
+- `2026-08-14 23:38:04 IST` — qwen38-27b-iq3: server started with PID 63098; log results/server-20260814-233803.log
+- Ran a medium-reasoning binary CSV evaluation task with a fixed 20-row fixture (`TP=6`, `TN=8`, `FP=2`, `FN=4`). It completed in 1,411.872 seconds with 21 tool calls, no tool errors, and no compaction.
+- The generated CLI correctly reported accuracy 0.70, precision 0.75, recall 0.60, F1 0.6667, and false-positive rate 0.20. It generated four valid, labeled PNG charts, and all 11 generated tests passed.
+- Independent validation rejected the result: `compute_metrics(tp=0, tn=5, fp=2, fn=3)` raises `ZeroDivisionError` because precision and recall are both zero. The generated tests omitted this case despite claiming complete zero-denominator coverage. FPR itself was correctly defined as `FP / (FP + TN)` and reported as undefined when no actual negatives exist.
+
+- `2026-08-15 00:03:19 IST` — stopped project server PID 63098
