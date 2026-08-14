@@ -32,6 +32,7 @@ ornith-35b-i-mini
 qwen36-27b-q2
 qwen36-27b-q2-mtp
 qwen36-27b-q2-dflash
+qwen38-27b-iq3
 qwen3.6-35b-a3b
 qwen3.5-27b
 ```
@@ -162,6 +163,23 @@ DFlash improved generation by **14.5%** and produced byte-identical deterministi
 An isolated Pi coding agent completed the video-preextractor task in 11.16 minutes with 13 tool calls and no tool errors. It used the documented PyTorchVideo API correctly, unlike the earlier KAT agents, but independent review still found missing worker support, filename collisions, stale overwrite manifests, and vacuous resume/corruption tests. The workspace and review are under `results/pi-subagents/muse-glimmer-dflash/`.
 
 Muse Glimmer requires a recent upstream llama.cpp with the `muse-glimmer` architecture; the pinned TurboQuant commit does not load it. `scripts/download-model.sh muse-glimmer-dflash` resolves both the target and companion draft GGUF. The DFlash profile uses `--model-draft`, `--spec-type draft-dflash`, and `--spec-draft-n-max 15`.
+
+## Qwen3.8 27B IQ3
+
+[Qwen3.8 27B](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF) is a dense hybrid thinking model with a native 262,144-token context window. The included `UD-IQ3_XXS` profile starts conservatively at 65,536 context with `f16/f16` KV cache and the recommended thinking defaults: temperature 1.0, top-p 0.95, top-k 20, min-p 0, zero presence penalty, xhigh reasoning, and preserved thinking.
+
+```bash
+scripts/download-model.sh qwen38-27b-iq3
+scripts/run.sh qwen38-27b-iq3
+scripts/benchmark.sh qwen38-27b-iq3
+pi --provider local-workbench --model qwen38-27b-iq3
+```
+
+The 11,913,559,104-byte GGUF has SHA-256 `0a6129dcbbbe72f423dc67e0e3bbfbbdf3e923981a3637687ebb96a46c59d6be`. At 65k context it measured **90.46 prompt tok/s**, **15.37 generation tok/s**, and about **15.97 GiB RSS**. Exact chat, Pi, and structured tool-call smoke tests passed.
+
+Reasoning effort matters substantially. Xhigh consumed 2,048 tokens without reaching a final answer on a small coding prompt; low reasoning completed it correctly. A focused low-reasoning Pi agent built a mocked single-object S3 video processor in 18.68 minutes with six tool calls, no tool errors, no compaction, and three passing independently rerun tests. Independent review accepted it with limitations: configured prefixes were not validated, successful ffmpeg exit was trusted without checking for an output file, and failure-stage cleanup coverage was incomplete. Machine-readable results are in `results/qwen38-27b-iq3-results.json`.
+
+The profile uses llama.cpp's native `--reasoning on` and `--reasoning-preserve` flags. `scripts/run.sh` also forwards profile-driven min-p, presence penalty, repetition penalty, and chat-template arguments.
 
 ## BTL-4 Compact
 

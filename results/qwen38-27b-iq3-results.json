@@ -1,0 +1,65 @@
+{
+  "model_id": "qwen38-27b-iq3",
+  "model": "Qwen3.8 27B UD-IQ3_XXS",
+  "repository": "unsloth/Qwen3.8-27B-GGUF",
+  "filename": "Qwen3.8-27B-UD-IQ3_XXS.gguf",
+  "bytes": 11913559104,
+  "sha256": "0a6129dcbbbe72f423dc67e0e3bbfbbdf3e923981a3637687ebb96a46c59d6be",
+  "hardware": "Mac, 48 GiB unified memory",
+  "runtime": "llama.cpp dd1ea524333b1e697489067d7a4c39c60d32beee",
+  "context": 65536,
+  "cache_type_k": "f16",
+  "cache_type_v": "f16",
+  "thinking_defaults": {
+    "temperature": 1.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "min_p": 0.0,
+    "presence_penalty": 0.0,
+    "repeat_penalty": 1.0,
+    "reasoning_effort": "xhigh",
+    "preserve_thinking": true
+  },
+  "benchmark": {
+    "prompt_tokens": 80,
+    "completion_tokens": 512,
+    "prompt_tokens_per_second": 90.4567045944091,
+    "generation_tokens_per_second": 15.369000701570869,
+    "rss_kb": 16745120
+  },
+  "validation": {
+    "exact_chat_response": true,
+    "pi_smoke": true,
+    "tool_call": {
+      "passed": true,
+      "name": "lookup_status",
+      "arguments": {
+        "job_id": "abc123"
+      }
+    },
+    "xhigh_small_coding_prompt": {
+      "completion_tokens": 2048,
+      "finish_reason": "length",
+      "final_response_produced": false
+    },
+    "low_small_coding_prompt": {
+      "completion_tokens": 1309,
+      "finish_reason": "stop",
+      "correct_final_response": true
+    }
+  },
+  "focused_agent": {
+    "task": "single-object S3 video processor",
+    "reasoning_effort": "low",
+    "elapsed_ms": 1120947,
+    "tool_calls": 6,
+    "tool_errors": 0,
+    "compactions": 0,
+    "tests": {
+      "passed": 3,
+      "failed": 0,
+      "independently_rerun": true
+    },
+    "verdict": "accepted_with_limitations"
+  }
+}

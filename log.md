@@ -405,3 +405,34 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-08-12 18:42:25 IST` — btl-4-compact: server started with PID 99512; log results/server-20260812-184224.log
 
 - `2026-08-12 19:13:59 IST` — stopped project server PID 99512
+
+- `2026-08-14 22:32:07 IST` — qwen38-27b-iq3: model resolver selected Qwen3.8-27B-UD-IQ3_XXS.gguf (11913559104 bytes)
+
+- `2026-08-14 22:32:40 IST` — preflight completed; report saved at results/preflight-20260814-223240.txt
+
+- `2026-08-14 22:32:41 IST` — qwen38-27b-iq3: server started with PID 27254; log results/server-20260814-223240.log
+
+- `2026-08-14 22:34:13 IST` — stopped project server PID 27254
+
+- `2026-08-14 22:34:14 IST` — preflight completed; report saved at results/preflight-20260814-223413.txt
+
+- `2026-08-14 22:34:15 IST` — qwen38-27b-iq3: server started with PID 28467; log results/server-20260814-223414.log
+
+## Qwen3.8 27B UD-IQ3_XXS initial test — 2026-08-14
+
+- Downloaded and verified `Qwen3.8-27B-UD-IQ3_XXS.gguf` from `unsloth/Qwen3.8-27B-GGUF`: 11,913,559,104 bytes, SHA-256 `0a6129dcbbbe72f423dc67e0e3bbfbbdf3e923981a3637687ebb96a46c59d6be`.
+- Loaded at 65,536 context with full Metal offload and `f16/f16` KV cache. Loaded RSS was about 15.2 GiB; a 512-token benchmark measured 90.46 prompt tok/s and 15.37 generation tok/s at about 15.97 GiB RSS.
+- Thinking mode uses the recommended `temperature=1.0`, `top_p=0.95`, `top_k=20`, `min_p=0`, zero presence penalty, xhigh reasoning, and preserved thinking. Added profile-driven sampler and reasoning flags to `scripts/run.sh`.
+- Exact chat and Pi smoke tests passed. A required `lookup_status` tool call succeeded with the exact `{"job_id":"abc123"}` argument after switching from deprecated template kwargs to llama.cpp's native reasoning flags.
+- Xhigh reasoning exhausted 2,048 output tokens without reaching a final answer on a small interval-merging task. Per-request low reasoning completed the same task correctly in 1,309 tokens; reasoning effort materially affects usability and should be evaluated before coding-agent runs.
+
+- `2026-08-14 23:14:09 IST` — stopped project server PID 28467
+
+- `2026-08-14 23:14:10 IST` — preflight completed; report saved at results/preflight-20260814-231409.txt
+
+- `2026-08-14 23:14:11 IST` — qwen38-27b-iq3: server started with PID 47668; log results/server-20260814-231410.log
+- Started the full classic in-flight S3 processor prompt at xhigh reasoning, but stopped it before completion after it remained in an extended generation phase without making a tool call. Preserved the interrupted transcript under `gen-outputs/qwen38-27b-iq3/s3-inflight-processor/`.
+- Retried with a focused single-object S3 processor prompt at low reasoning. It completed in 1,120.947 seconds with six tool calls, no tool errors, and no compaction; all three mocked unittests passed independently.
+- Independent verdict: accepted with limitations. The implementation correctly used fixed temporary filenames, argument-array subprocess execution, injected S3/runner boundaries, upload-after-success ordering, and automatic cleanup. It did not validate configured prefixes, did not explicitly verify ffmpeg created an output file, and did not test cleanup after download/upload exceptions.
+
+- `2026-08-14 23:35:11 IST` — stopped project server PID 47668

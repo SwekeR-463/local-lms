@@ -54,7 +54,13 @@ add_flag_value "--seed" "${SEED:-42}"
 [[ -z "${TEMPERATURE:-}" ]] || add_flag_value "--temp" "${TEMPERATURE}"
 [[ -z "${TOP_P:-}" ]] || add_flag_value "--top-p" "${TOP_P}"
 [[ -z "${TOP_K:-}" ]] || add_flag_value "--top-k" "${TOP_K}"
+[[ -z "${MIN_P:-}" ]] || add_flag_value "--min-p" "${MIN_P}"
+[[ -z "${PRESENCE_PENALTY:-}" ]] || add_flag_value "--presence-penalty" "${PRESENCE_PENALTY}"
+[[ -z "${REPEAT_PENALTY:-}" ]] || add_flag_value "--repeat-penalty" "${REPEAT_PENALTY}"
+[[ -z "${CHAT_TEMPLATE_KWARGS:-}" ]] || add_flag_value "--chat-template-kwargs" "${CHAT_TEMPLATE_KWARGS}"
+[[ -z "${REASONING:-}" ]] || add_flag_value "--reasoning" "${REASONING}"
 [[ -z "${REASONING_FORMAT:-}" ]] || add_flag_value "--reasoning-format" "${REASONING_FORMAT}"
+[[ "${REASONING_PRESERVE:-0}" != 1 ]] || ! has_flag "${HELP}" "--reasoning-preserve" || ARGS+=(--reasoning-preserve)
 if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
     DRAFT_MODEL_DIR="$(project_path "${DRAFT_MODEL_DIR:-models}")"
     DRAFT_MODEL="${DRAFT_MODEL_DIR}/$(basename "${DRAFT_MODEL_FILE}")"
