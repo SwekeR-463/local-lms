@@ -63,6 +63,13 @@
           "reasoning": true,
           "contextWindow": 131072,
           "maxTokens": 65536
+        },
+        {
+          "id": "btl-4-compact",
+          "name": "BTL-4 Compact IQ2_XXS (local)",
+          "reasoning": true,
+          "contextWindow": 65536,
+          "maxTokens": 16384
         }
       ]
     }

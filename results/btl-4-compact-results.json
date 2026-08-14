@@ -1,0 +1,25 @@
+{
+  "model_id": "btl-4-compact",
+  "model": "BTL-4 Compact IQ2_XXS",
+  "hardware": "Mac, 48 GiB unified memory",
+  "runtime": "llama.cpp dd1ea524333b1e697489067d7a4c39c60d32beee",
+  "measurements": [
+    {
+      "context": 32768,
+      "generation_tokens_per_second": 71.41,
+      "loaded_rss_gib": 9.82
+    },
+    {
+      "context": 65536,
+      "loaded_rss_gib": 10.16,
+      "peak_observed_agent_rss_gib": 10.54
+    }
+  ],
+  "coding_assessment": {
+    "autonomous_rating_out_of_10": 4,
+    "supervised_rating_out_of_10": 6,
+    "rating_basis": "subjective assessment",
+    "independent_verdict": "rejected",
+    "supervision_rounds": 5
+  }
+}

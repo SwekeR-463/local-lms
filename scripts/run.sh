@@ -54,6 +54,7 @@ add_flag_value "--seed" "${SEED:-42}"
 [[ -z "${TEMPERATURE:-}" ]] || add_flag_value "--temp" "${TEMPERATURE}"
 [[ -z "${TOP_P:-}" ]] || add_flag_value "--top-p" "${TOP_P}"
 [[ -z "${TOP_K:-}" ]] || add_flag_value "--top-k" "${TOP_K}"
+[[ -z "${REASONING_FORMAT:-}" ]] || add_flag_value "--reasoning-format" "${REASONING_FORMAT}"
 if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
     DRAFT_MODEL_DIR="$(project_path "${DRAFT_MODEL_DIR:-models}")"
     DRAFT_MODEL="${DRAFT_MODEL_DIR}/$(basename "${DRAFT_MODEL_FILE}")"
