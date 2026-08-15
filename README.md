@@ -181,6 +181,8 @@ The 11,913,559,104-byte GGUF has SHA-256 `0a6129dcbbbe72f423dc67e0e3bbfbbdf3e923
 |---:|---|---:|---:|---:|
 | 65,536 | `f16/f16` | 90.46 tok/s | **15.37 tok/s** | 15.97 GiB |
 
+![Qwen3.8 27B IQ3 throughput and memory](results/plots/qwen38_27b_iq3.png)
+
 Exact chat, Pi, and structured tool-call smoke tests passed.
 
 Reasoning effort matters substantially. Xhigh consumed 2,048 tokens without reaching a final answer on a small coding prompt; low reasoning completed it correctly. A focused low-reasoning Pi agent built a mocked single-object S3 video processor in 18.68 minutes with six tool calls, no tool errors, no compaction, and three passing independently rerun tests. Independent review accepted it with limitations: configured prefixes were not validated, successful ffmpeg exit was trusted without checking for an output file, and failure-stage cleanup coverage was incomplete.
