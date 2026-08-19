@@ -1,0 +1,1 @@
+Implement `merge_intervals(intervals)` in Python. Input is an iterable of `(start, end)` integer pairs where `start <= end`. Return a new list of tuples sorted by start, merging overlapping and touching intervals. Empty input returns `[]`; do not mutate the input. Return only complete Python source code.

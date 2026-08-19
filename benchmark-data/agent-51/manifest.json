@@ -1,0 +1,88 @@
+{
+  "suite_id": "python-agent-51-v1",
+  "description": "Custom Python-heavy subset; results are not full official benchmark scores.",
+  "task_count": 51,
+  "benchmarks": [
+    {
+      "name": "SWE-bench Verified",
+      "task_count": 20,
+      "source": "https://huggingface.co/datasets/SWE-bench/SWE-bench_Verified",
+      "dataset_revision": "fd80552a1f66168960a36eb84c498a0d535eacfb",
+      "harness": "https://github.com/swe-bench/SWE-bench",
+      "harness_revision": "3947b299c121bb1f45f5094180c0f39fa0c599a0",
+      "selection": "Two instances sampled per each of the ten largest repositories with Python random seed 38; IDs sorted within repository.",
+      "tasks": [
+        "django__django-13809",
+        "django__django-15278",
+        "sympy__sympy-13798",
+        "sympy__sympy-20916",
+        "sphinx-doc__sphinx-8475",
+        "sphinx-doc__sphinx-10614",
+        "matplotlib__matplotlib-25287",
+        "matplotlib__matplotlib-26113",
+        "scikit-learn__scikit-learn-10908",
+        "scikit-learn__scikit-learn-13142",
+        "astropy__astropy-7606",
+        "astropy__astropy-14369",
+        "pydata__xarray-4356",
+        "pydata__xarray-4687",
+        "pytest-dev__pytest-6202",
+        "pytest-dev__pytest-7205",
+        "pylint-dev__pylint-6903",
+        "pylint-dev__pylint-7080",
+        "psf__requests-1921",
+        "psf__requests-2317"
+      ]
+    },
+    {
+      "name": "Terminal-Bench 2.1",
+      "task_count": 25,
+      "source": "https://github.com/laude-institute/terminal-bench",
+      "source_revision": "d28711d0da2675d0bb1d56de45ae5df6082438a3",
+      "version": "2.1",
+      "selection": "Fixed Python-heavy subset.",
+      "tasks": [
+        "cancel-async-tasks",
+        "build-cython-ext",
+        "fix-code-vulnerability",
+        "hf-model-inference",
+        "llm-inference-batching-scheduler",
+        "modernize-scientific-stack",
+        "multi-source-data-merger",
+        "pytorch-model-recovery",
+        "raman-fitting",
+        "video-processing",
+        "bn-fit-modify",
+        "constraints-scheduling",
+        "count-dataset-tokens",
+        "distribution-search",
+        "mteb-retrieve",
+        "model-extraction-relu-logits",
+        "portfolio-optimization",
+        "sam-cell-seg",
+        "train-fasttext",
+        "torch-pipeline-parallelism",
+        "torch-tensor-parallelism",
+        "tune-mjcf",
+        "write-compressor",
+        "path-tracing",
+        "financial-document-processor"
+      ]
+    },
+    {
+      "name": "MLE-bench",
+      "task_count": 6,
+      "source": "https://github.com/openai/mle-bench",
+      "source_revision": "507f92e1138bb6e40dac5c6ee7a6758e6424bf97",
+      "selection": "Fixed lightweight, modality-diverse custom subset of the official Lite competitions.",
+      "tasks": [
+        "aerial-cactus-identification",
+        "denoising-dirty-documents",
+        "leaf-classification",
+        "plant-pathology-2020-fgvc7",
+        "mlsp-2013-birds",
+        "the-icml-2013-whale-challenge-right-whale-redux"
+      ]
+    }
+  ]
+}

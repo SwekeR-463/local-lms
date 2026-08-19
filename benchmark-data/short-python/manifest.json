@@ -1,0 +1,18 @@
+{
+  "suite_id": "short-python-v1",
+  "language": "python",
+  "settings": {
+    "temperature": 0,
+    "seed": 42,
+    "max_tokens": 1024,
+    "reasoning_effort": "low"
+  },
+  "tasks": [
+    {"id": "merge-intervals", "function": "merge_intervals"},
+    {"id": "binary-metrics", "function": "binary_metrics"},
+    {"id": "flatten-dict", "function": "flatten_dict"},
+    {"id": "dependency-order", "function": "dependency_order"},
+    {"id": "parse-env", "function": "parse_env"},
+    {"id": "batch-iterable", "function": "batch_iterable"}
+  ]
+}

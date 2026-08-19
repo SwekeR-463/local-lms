@@ -445,3 +445,112 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Independent validation rejected the result: `compute_metrics(tp=0, tn=5, fp=2, fn=3)` raises `ZeroDivisionError` because precision and recall are both zero. The generated tests omitted this case despite claiming complete zero-denominator coverage. FPR itself was correctly defined as `FP / (FP + TN)` and reported as undefined when no actual negatives exist.
 
 - `2026-08-15 00:03:19 IST` — stopped project server PID 63098
+
+- `2026-08-15 20:03:29 IST` — qwen38-27b-ud-q3: model resolver selected Qwen3.8-27B-UD-Q3_K_XL.gguf (13441059904 bytes)
+
+- `2026-08-15 20:28:56 IST` — qwen38-27b-ad-iq3: model resolver selected Qwen3.8-27B-AD-IQ3_S.gguf (13838267872 bytes)
+
+- `2026-08-15 20:29:12 IST` — preflight completed; report saved at results/preflight-20260815-202911.txt
+
+- `2026-08-15 20:29:13 IST` — qwen38-27b-ud-q3: server started with PID 91057; log results/server-20260815-202912.log
+
+- `2026-08-15 20:30:05 IST` — stopped project server PID 91057
+
+- `2026-08-15 20:30:05 IST` — preflight completed; report saved at results/preflight-20260815-203005.txt
+
+- `2026-08-15 20:30:06 IST` — qwen38-27b-ad-iq3: server started with PID 91485; log results/server-20260815-203005.log
+
+- `2026-08-15 20:32:35 IST` — stopped project server PID 91485
+
+- `2026-08-15 20:32:35 IST` — preflight completed; report saved at results/preflight-20260815-203235.txt
+
+- `2026-08-15 20:32:37 IST` — qwen38-27b-ud-q3: server started with PID 92356; log results/server-20260815-203236.log
+
+- `2026-08-15 20:36:00 IST` — stopped project server PID 92356
+
+- `2026-08-15 20:50:00 IST` — preflight completed; report saved at results/preflight-20260815-205000.txt
+
+- `2026-08-15 20:50:02 IST` — qwen38-27b-ud-q3: server started with PID 3134; log results/server-20260815-205001.log
+
+- `2026-08-15 20:59:20 IST` — stopped project server PID 3134
+
+- `2026-08-15 20:59:20 IST` — preflight completed; report saved at results/preflight-20260815-205920.txt
+
+- `2026-08-15 20:59:21 IST` — qwen38-27b-ad-iq3: server started with PID 11949; log results/server-20260815-205920.log
+
+- `2026-08-15 21:09:49 IST` — stopped project server PID 11949
+
+## Qwen3.8 27B Q3 comparison — 2026-08-15
+
+- Downloaded and checksum-verified Unsloth `UD-Q3_K_XL` (13,441,059,904 bytes; `00cf92e666c6af6566996c38c89a44ccdb6449ea25ef0f112a452c853b2a71e2`) and AtomicChat `AD-IQ3_S` (13,838,267,872 bytes; `3e30f93acafc11705a8e4891a0b2aa3c138ffcaf2ca832b1c6a11ea4b5b7b620`).
+- Initial cold 512-token runs were effectively tied at 15.57 and 15.22 generation tok/s. Repeated back-to-back runs thermally throttled and are not treated as a stable throughput comparison.
+- AtomicChat's matched-corpus measurements favor AD-IQ3_S: mean KL divergence 0.03247 versus 0.03972 and same-top-token agreement 92.411% versus 91.869%.
+- Added `benchmark-data/short-python/`, a six-task coding suite with held-out executable evaluators, and `scripts/benchmark-code.sh`. Both quants scored 4/6 under the fixed 1,024-token low-reasoning budget; both truncated before complete answers on binary metrics and dependency ordering.
+- Added `benchmark-data/agent-51/manifest.json`, pinning the custom 20 SWE-bench Verified, 25 Terminal-Bench 2.1, and six MLE-bench task subset. It is explicitly labeled as a custom subset rather than an official full-suite score.
+- Repeated the short suite at medium reasoning with a 2,048-token cap. Both quants improved to 5/6 by completing binary metrics correctly; both still exhausted the limit before returning complete dependency-order source. Results are in `results/qwen38-27b-short-python-medium-comparison.json`.
+- Tested AD-IQ3_S with upstream `f16/f16`, `q8_0/q8_0`, and `q4_0/q4_0`; TurboQuant `q8_0/turbo3` and `q8_0/turbo4`; and upstream embedded MTP. The cold 512-token runs measured 15.92, 15.67, 15.52, 15.51, 9.40, and 12.63 tok/s respectively. MTP was slower despite 94.2% acceptance. No configuration reached 20 tok/s; upstream `f16/f16` remained fastest and measured 16.08 tok/s on UD-Q3_K_XL. Results are in `results/qwen38-27b-ad-speed-matrix.json` and `results/qwen38-27b-ud-f16-confirmation.json`.
+- Ran one Terminal-Bench 2.1 `cancel-async-tasks` smoke task. The first UD verifier was invalid because `uvx` crashed under QEMU. After enabling Rosetta temporarily, the valid UD trial scored 0.0 because the submitted API was synchronous instead of async. The AD trial was interrupted at user request. This is not a paired benchmark; see `results/qwen38-27b-terminal-bench-smoke.json`. Raw Harbor jobs remain locally ignored.
+
+- `2026-08-15 21:13:24 IST` — preflight completed; report saved at results/preflight-20260815-211324.txt
+
+- `2026-08-15 21:13:26 IST` — qwen38-27b-ud-q3: server started with PID 21831; log results/server-20260815-211325.log
+
+- `2026-08-15 21:26:20 IST` — stopped project server PID 21831
+
+- `2026-08-15 21:26:20 IST` — preflight completed; report saved at results/preflight-20260815-212620.txt
+
+- `2026-08-15 21:26:21 IST` — qwen38-27b-ad-iq3: server started with PID 31342; log results/server-20260815-212620.log
+
+- `2026-08-15 21:38:29 IST` — stopped project server PID 31342
+
+- `2026-08-15 22:26:40 IST` — preflight completed; report saved at results/preflight-20260815-222640.txt
+
+- `2026-08-15 22:26:41 IST` — qwen38-27b-ud-q3: server started with PID 70333; log results/server-20260815-222640.log
+
+- `2026-08-15 23:23:30 IST` — stopped project server PID 70333
+
+- `2026-08-15 23:23:30 IST` — preflight completed; report saved at results/preflight-20260815-232330.txt
+
+- `2026-08-15 23:23:32 IST` — qwen38-27b-ad-iq3: server started with PID 3570; log results/server-20260815-232331.log
+
+- `2026-08-17 15:39:07 IST` — preflight completed; report saved at results/preflight-20260817-153907.txt
+
+- `2026-08-17 15:39:08 IST` — qwen38-27b-ad-iq3: server started with PID 14294; log results/server-20260817-153907.log
+
+- `2026-08-17 15:39:45 IST` — stopped project server PID 14294
+
+- `2026-08-17 15:40:16 IST` — preflight completed; report saved at results/preflight-20260817-154015.txt
+
+- `2026-08-17 15:40:17 IST` — qwen38-27b-ad-iq3: server started with PID 14632; log results/server-20260817-154016.log
+
+- `2026-08-17 15:40:52 IST` — stopped project server PID 14632
+
+- `2026-08-17 15:41:23 IST` — preflight completed; report saved at results/preflight-20260817-154122.txt
+
+- `2026-08-17 15:41:24 IST` — qwen38-27b-ad-iq3: server started with PID 14961; log results/server-20260817-154123.log
+
+- `2026-08-17 15:42:00 IST` — stopped project server PID 14961
+
+- `2026-08-17 15:42:30 IST` — preflight completed; report saved at results/preflight-20260817-154230.txt
+
+- `2026-08-17 15:42:31 IST` — qwen38-27b-ad-iq3: server started with PID 21822; log results/server-20260817-154230.log
+
+- `2026-08-17 15:43:07 IST` — stopped project server PID 21822
+
+- `2026-08-17 15:43:38 IST` — preflight completed; report saved at results/preflight-20260817-154337.txt
+
+- `2026-08-17 15:43:39 IST` — qwen38-27b-ad-iq3: server started with PID 22158; log results/server-20260817-154338.log
+
+- `2026-08-17 15:44:36 IST` — stopped project server PID 22158
+
+- `2026-08-17 15:45:07 IST` — preflight completed; report saved at results/preflight-20260817-154506.txt
+
+- `2026-08-17 15:45:08 IST` — qwen38-27b-ad-iq3: server started with PID 22531; log results/server-20260817-154507.log
+
+- `2026-08-17 15:45:51 IST` — stopped project server PID 22531
+
+- `2026-08-17 15:46:46 IST` — preflight completed; report saved at results/preflight-20260817-154646.txt
+
+- `2026-08-17 15:46:48 IST` — qwen38-27b-ud-q3: server started with PID 22897; log results/server-20260817-154647.log
+
+- `2026-08-17 15:47:23 IST` — stopped project server PID 22897

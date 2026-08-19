@@ -1,0 +1,163 @@
+{
+  "comparison_id": "qwen38-27b-short-python-v1",
+  "suite_id": "short-python-v1",
+  "hardware": "Mac",
+  "settings": {
+    "temperature": 0,
+    "seed": 42,
+    "max_tokens": 1024,
+    "reasoning_effort": "low"
+  },
+  "models": [
+    {
+      "model_id": "qwen38-27b-ud-q3",
+      "suite_id": "short-python-v1",
+      "run_at": "2026-08-15T20:58:31+0530",
+      "total": 6,
+      "passed": 4,
+      "tasks": [
+        {
+          "task": "merge-intervals",
+          "passed": true,
+          "response": "merge-intervals-response.json",
+          "candidate": "merge-intervals.py",
+          "evaluation": "merge-intervals-evaluation.log",
+          "prompt_tokens": 103,
+          "completion_tokens": 918,
+          "generation_tokens_per_second": 15.467998967991281,
+          "finish_reason": "stop"
+        },
+        {
+          "task": "binary-metrics",
+          "passed": false,
+          "response": "binary-metrics-response.json",
+          "candidate": "binary-metrics.py",
+          "evaluation": "binary-metrics-evaluation.log",
+          "prompt_tokens": 130,
+          "completion_tokens": 1024,
+          "generation_tokens_per_second": 14.428465513811606,
+          "finish_reason": "length"
+        },
+        {
+          "task": "flatten-dict",
+          "passed": true,
+          "response": "flatten-dict-response.json",
+          "candidate": "flatten-dict.py",
+          "evaluation": "flatten-dict-evaluation.log",
+          "prompt_tokens": 119,
+          "completion_tokens": 672,
+          "generation_tokens_per_second": 12.602591329075846,
+          "finish_reason": "stop"
+        },
+        {
+          "task": "dependency-order",
+          "passed": false,
+          "response": "dependency-order-response.json",
+          "candidate": "dependency-order.py",
+          "evaluation": "dependency-order-evaluation.log",
+          "prompt_tokens": 116,
+          "completion_tokens": 1024,
+          "generation_tokens_per_second": 8.173626602842988,
+          "finish_reason": "length"
+        },
+        {
+          "task": "parse-env",
+          "passed": true,
+          "response": "parse-env-response.json",
+          "candidate": "parse-env.py",
+          "evaluation": "parse-env-evaluation.log",
+          "prompt_tokens": 133,
+          "completion_tokens": 896,
+          "generation_tokens_per_second": 8.604192463839418,
+          "finish_reason": "stop"
+        },
+        {
+          "task": "batch-iterable",
+          "passed": true,
+          "response": "batch-iterable-response.json",
+          "candidate": "batch-iterable.py",
+          "evaluation": "batch-iterable-evaluation.log",
+          "prompt_tokens": 123,
+          "completion_tokens": 794,
+          "generation_tokens_per_second": 8.916552611905319,
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "model_id": "qwen38-27b-ad-iq3",
+      "suite_id": "short-python-v1",
+      "run_at": "2026-08-15T21:09:48+0530",
+      "total": 6,
+      "passed": 4,
+      "tasks": [
+        {
+          "task": "merge-intervals",
+          "passed": true,
+          "response": "merge-intervals-response.json",
+          "candidate": "merge-intervals.py",
+          "evaluation": "merge-intervals-evaluation.log",
+          "prompt_tokens": 103,
+          "completion_tokens": 751,
+          "generation_tokens_per_second": 10.818773571438934,
+          "finish_reason": "stop"
+        },
+        {
+          "task": "binary-metrics",
+          "passed": false,
+          "response": "binary-metrics-response.json",
+          "candidate": "binary-metrics.py",
+          "evaluation": "binary-metrics-evaluation.log",
+          "prompt_tokens": 130,
+          "completion_tokens": 1024,
+          "generation_tokens_per_second": 8.53447531725141,
+          "finish_reason": "length"
+        },
+        {
+          "task": "flatten-dict",
+          "passed": true,
+          "response": "flatten-dict-response.json",
+          "candidate": "flatten-dict.py",
+          "evaluation": "flatten-dict-evaluation.log",
+          "prompt_tokens": 119,
+          "completion_tokens": 898,
+          "generation_tokens_per_second": 6.9862317942241985,
+          "finish_reason": "stop"
+        },
+        {
+          "task": "dependency-order",
+          "passed": false,
+          "response": "dependency-order-response.json",
+          "candidate": "dependency-order.py",
+          "evaluation": "dependency-order-evaluation.log",
+          "prompt_tokens": 116,
+          "completion_tokens": 1024,
+          "generation_tokens_per_second": 7.643244972495141,
+          "finish_reason": "length"
+        },
+        {
+          "task": "parse-env",
+          "passed": true,
+          "response": "parse-env-response.json",
+          "candidate": "parse-env.py",
+          "evaluation": "parse-env-evaluation.log",
+          "prompt_tokens": 133,
+          "completion_tokens": 960,
+          "generation_tokens_per_second": 9.663178245898818,
+          "finish_reason": "stop"
+        },
+        {
+          "task": "batch-iterable",
+          "passed": true,
+          "response": "batch-iterable-response.json",
+          "candidate": "batch-iterable.py",
+          "evaluation": "batch-iterable-evaluation.log",
+          "prompt_tokens": 123,
+          "completion_tokens": 618,
+          "generation_tokens_per_second": 9.603090442325337,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "comparison_id": "qwen38-27b-short-python-medium-v1",
+  "suite_id": "short-python-v1",
+  "hardware": "Mac",
+  "settings": {
+    "temperature": 0,
+    "seed": 42,
+    "max_tokens": 2048,
+    "reasoning_effort": "medium"
+  },
+  "models": [
+    {
+      "model_id": "qwen38-27b-ud-q3",
+      "suite_id": "short-python-v1",
+      "run_at": "2026-08-15T21:26:00+0530",
+      "settings": {
+        "temperature": 0,
+        "seed": 42,
+        "max_tokens": 2048,
+        "reasoning_effort": "medium"
+      },
+      "total": 6,
+      "passed": 5,
+      "tasks": [
+        {
+          "task": "merge-intervals",
+          "passed": true,
+          "response": "merge-intervals-response.json",
+          "candidate": "merge-intervals.py",
+          "evaluation": "merge-intervals-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 73,
+          "completion_tokens": 961,
+          "generation_tokens_per_second": 15.351942891411442
+        },
+        {
+          "task": "binary-metrics",
+          "passed": true,
+          "response": "binary-metrics-response.json",
+          "candidate": "binary-metrics.py",
+          "evaluation": "binary-metrics-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 100,
+          "completion_tokens": 1116,
+          "generation_tokens_per_second": 13.291746365037877
+        },
+        {
+          "task": "flatten-dict",
+          "passed": true,
+          "response": "flatten-dict-response.json",
+          "candidate": "flatten-dict.py",
+          "evaluation": "flatten-dict-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 89,
+          "completion_tokens": 1021,
+          "generation_tokens_per_second": 8.988159328144159
+        },
+        {
+          "task": "dependency-order",
+          "passed": false,
+          "response": "dependency-order-response.json",
+          "candidate": "dependency-order.py",
+          "evaluation": "dependency-order-evaluation.log",
+          "finish_reason": "length",
+          "prompt_tokens": 86,
+          "completion_tokens": 2048,
+          "generation_tokens_per_second": 8.378174875721456
+        },
+        {
+          "task": "parse-env",
+          "passed": true,
+          "response": "parse-env-response.json",
+          "candidate": "parse-env.py",
+          "evaluation": "parse-env-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 103,
+          "completion_tokens": 1000,
+          "generation_tokens_per_second": 8.36817177580513
+        },
+        {
+          "task": "batch-iterable",
+          "passed": true,
+          "response": "batch-iterable-response.json",
+          "candidate": "batch-iterable.py",
+          "evaluation": "batch-iterable-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 93,
+          "completion_tokens": 1020,
+          "generation_tokens_per_second": 8.36650186517215
+        }
+      ]
+    },
+    {
+      "model_id": "qwen38-27b-ad-iq3",
+      "suite_id": "short-python-v1",
+      "run_at": "2026-08-15T21:38:28+0530",
+      "settings": {
+        "temperature": 0,
+        "seed": 42,
+        "max_tokens": 2048,
+        "reasoning_effort": "medium"
+      },
+      "total": 6,
+      "passed": 5,
+      "tasks": [
+        {
+          "task": "merge-intervals",
+          "passed": true,
+          "response": "merge-intervals-response.json",
+          "candidate": "merge-intervals.py",
+          "evaluation": "merge-intervals-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 73,
+          "completion_tokens": 1119,
+          "generation_tokens_per_second": 8.544801973603374
+        },
+        {
+          "task": "binary-metrics",
+          "passed": true,
+          "response": "binary-metrics-response.json",
+          "candidate": "binary-metrics.py",
+          "evaluation": "binary-metrics-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 100,
+          "completion_tokens": 1377,
+          "generation_tokens_per_second": 8.405358260236117
+        },
+        {
+          "task": "flatten-dict",
+          "passed": true,
+          "response": "flatten-dict-response.json",
+          "candidate": "flatten-dict.py",
+          "evaluation": "flatten-dict-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 89,
+          "completion_tokens": 791,
+          "generation_tokens_per_second": 9.839618448704913
+        },
+        {
+          "task": "dependency-order",
+          "passed": false,
+          "response": "dependency-order-response.json",
+          "candidate": "dependency-order.py",
+          "evaluation": "dependency-order-evaluation.log",
+          "finish_reason": "length",
+          "prompt_tokens": 86,
+          "completion_tokens": 2048,
+          "generation_tokens_per_second": 10.522773764114865
+        },
+        {
+          "task": "parse-env",
+          "passed": true,
+          "response": "parse-env-response.json",
+          "candidate": "parse-env.py",
+          "evaluation": "parse-env-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 103,
+          "completion_tokens": 846,
+          "generation_tokens_per_second": 10.85010384036732
+        },
+        {
+          "task": "batch-iterable",
+          "passed": true,
+          "response": "batch-iterable-response.json",
+          "candidate": "batch-iterable.py",
+          "evaluation": "batch-iterable-evaluation.log",
+          "finish_reason": "stop",
+          "prompt_tokens": 93,
+          "completion_tokens": 738,
+          "generation_tokens_per_second": 10.757739296945877
+        }
+      ]
+    }
+  ],
+  "note": "Both dependency-order responses reached the completion limit before returning complete source."
+}

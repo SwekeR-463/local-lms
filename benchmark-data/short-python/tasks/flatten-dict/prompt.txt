@@ -1,0 +1,1 @@
+Implement `flatten_dict(data, sep=".")` in Python. Recursively flatten nested dictionaries into dotted keys. Preserve non-dictionary values unchanged, preserve an empty dictionary as the value at its path, and return `{}` for an empty top-level dictionary. Keys are non-empty strings and `sep` is a non-empty string. Do not mutate the input. Return only complete Python source code.
