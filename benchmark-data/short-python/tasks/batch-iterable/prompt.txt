@@ -1,0 +1,1 @@
+Implement `batch_iterable(items, size)` in Python. Accept any iterable, including a one-shot generator, and return a list of lists containing consecutive items in batches of at most `size`. Return `[]` for empty input. Raise `ValueError` when `size` is not a positive integer; booleans are not valid sizes. Consume the iterable only once. Return only complete Python source code.

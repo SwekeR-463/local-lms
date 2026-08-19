@@ -1,0 +1,34 @@
+{
+  "comparison_id": "qwen38-27b-q3-comparison",
+  "hardware": "Mac",
+  "context": 65536,
+  "models": [
+    {
+      "model_id": "qwen38-27b-ud-q3",
+      "label": "UD-Q3_K_XL",
+      "size_bytes": 13441059904,
+      "mean_kl_divergence": 0.03972,
+      "same_top_token_percent": 91.869,
+      "short_python_low_passed": 4,
+      "short_python_medium_passed": 5,
+      "short_python_total": 6
+    },
+    {
+      "model_id": "qwen38-27b-ad-iq3",
+      "label": "AD-IQ3_S",
+      "size_bytes": 13838267872,
+      "mean_kl_divergence": 0.03247,
+      "same_top_token_percent": 92.411,
+      "short_python_low_passed": 4,
+      "short_python_medium_passed": 5,
+      "short_python_total": 6
+    }
+  ],
+  "quality_metric_source": {
+    "repository": "https://huggingface.co/AtomicChat/Qwen3.8-27B-GGUF",
+    "revision": "ca10ebceb1887be9d33b838770a36b39d75a8a4c",
+    "description": "matched-corpus measurements"
+  },
+  "short_python_low_source": "results/qwen38-27b-short-python-comparison.json",
+  "short_python_medium_source": "results/qwen38-27b-short-python-medium-comparison.json"
+}

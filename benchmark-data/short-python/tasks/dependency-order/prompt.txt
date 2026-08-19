@@ -1,0 +1,1 @@
+Implement `dependency_order(graph)` in Python. `graph` maps string item names to iterables of prerequisite names. Return every item, including names appearing only as prerequisites, in a valid topological order. When multiple items are available, choose lexicographically. Raise `ValueError` if there is a cycle. Do not mutate the input. Return only complete Python source code.

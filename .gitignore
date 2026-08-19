@@ -15,5 +15,8 @@ results/cpu-moe-*/
 results/benchmark-*.json
 results/model-*.json
 results/preflight-*.txt
+/results/qwen38-ad-speed-matrix-*/
+/results/short-python-*/
+/results/terminal-bench/
 eval_results*/
 /gen-outputs/

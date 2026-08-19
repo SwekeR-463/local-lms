@@ -70,6 +70,13 @@
           "reasoning": true,
           "contextWindow": 65536,
           "maxTokens": 16384
+        },
+        {
+          "id": "qwen38-27b-iq3",
+          "name": "Qwen3.8 27B UD-IQ3_XXS (local)",
+          "reasoning": true,
+          "contextWindow": 65536,
+          "maxTokens": 16384
         }
       ]
     }

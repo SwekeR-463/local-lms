@@ -1,0 +1,32 @@
+{
+  "comparison_id": "qwen38-27b-terminal-bench-cancel-async-tasks-smoke",
+  "dataset": "terminal-bench/terminal-bench-2-1",
+  "task": "terminal-bench/cancel-async-tasks",
+  "agent": "pi",
+  "reasoning_effort": "medium",
+  "trials": [
+    {
+      "model_id": "qwen38-27b-ud-q3",
+      "status": "invalid-verifier",
+      "reward": 0.0,
+      "runtime_seconds": 659,
+      "reason": "uvx verifier crashed under QEMU with signal 11"
+    },
+    {
+      "model_id": "qwen38-27b-ud-q3",
+      "status": "completed",
+      "reward": 0.0,
+      "runtime_seconds": 786,
+      "tests_passed": 1,
+      "tests_total": 6,
+      "reason": "The submitted run_tasks function was synchronous although the required API was async"
+    },
+    {
+      "model_id": "qwen38-27b-ad-iq3",
+      "status": "interrupted",
+      "reward": null,
+      "reason": "Stopped at user request before the agent or verifier completed"
+    }
+  ],
+  "note": "This is one custom smoke task, not a Terminal-Bench score or a valid paired model comparison."
+}
