@@ -1,0 +1,169 @@
+{
+  "comparison_id": "qwen38-27b-ad-iq3-vs-ud-q3-v3",
+  "run_at": "2026-08-19",
+  "runtime": {
+    "llama_cpp_commit": "5ecbe1ac17ec0484c5b44af0bd580cdc9c428ed4",
+    "hardware": "Mac"
+  },
+  "speed_settings": {
+    "context": 65536,
+    "cache_type_k": "f16",
+    "cache_type_v": "f16",
+    "temperature": 0,
+    "seed": 42,
+    "max_tokens": 512,
+    "reasoning_effort": "xhigh",
+    "note": "Two cold runs per model in reversed order with 30-60 second gaps; not a sustained-performance estimate."
+  },
+  "models": [
+    {
+      "model_id": "qwen38-27b-ad-iq3",
+      "model_name": "AtomicChat AD-IQ3_S",
+      "bytes": 13838267872,
+      "sha256": "3e30f93acafc11705a8e4891a0b2aa3c138ffcaf2ca832b1c6a11ea4b5b7b620",
+      "speed_runs": [
+        {
+          "generation_tokens_per_second": 13.807135873673408,
+          "prompt_tokens_per_second": 84.80352613061652,
+          "rss_kb": 17960464
+        },
+        {
+          "generation_tokens_per_second": 15.19938379140092,
+          "prompt_tokens_per_second": 91.7770094002602,
+          "rss_kb": 17391888
+        }
+      ],
+      "median_generation_tokens_per_second": 14.503259832537164,
+      "short_python": {
+        "suite_id": "short-python-v1",
+        "settings": {
+          "temperature": 0,
+          "seed": 42,
+          "max_tokens": 2048,
+          "reasoning_effort": "medium"
+        },
+        "passed": 5,
+        "total": 6,
+        "tasks": [
+          {
+            "task": "merge-intervals",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 1119,
+            "generation_tokens_per_second": 14.253563448233288
+          },
+          {
+            "task": "binary-metrics",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 1377,
+            "generation_tokens_per_second": 13.285623013263491
+          },
+          {
+            "task": "flatten-dict",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 791,
+            "generation_tokens_per_second": 11.787696014836621
+          },
+          {
+            "task": "dependency-order",
+            "passed": false,
+            "finish_reason": "length",
+            "completion_tokens": 2048,
+            "generation_tokens_per_second": 11.980697627068029
+          },
+          {
+            "task": "parse-env",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 846,
+            "generation_tokens_per_second": 11.651544845927418
+          },
+          {
+            "task": "batch-iterable",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 738,
+            "generation_tokens_per_second": 10.149786891659028
+          }
+        ]
+      }
+    },
+    {
+      "model_id": "qwen38-27b-ud-q3-v3",
+      "model_name": "Unsloth UD-Q3_K_XL Dynamic V3.0",
+      "bytes": 13146393504,
+      "sha256": "8c2a45ff85e7674ca185ec8eb6cdeab0e617ed9d8018caed0b64380eb2a67a5e",
+      "speed_runs": [
+        {
+          "generation_tokens_per_second": 11.905675272310868,
+          "prompt_tokens_per_second": 73.21166774348828,
+          "rss_kb": 17123392
+        },
+        {
+          "generation_tokens_per_second": 15.205360142376922,
+          "prompt_tokens_per_second": 92.77836408549527,
+          "rss_kb": 17313968
+        }
+      ],
+      "median_generation_tokens_per_second": 13.555517707343895,
+      "short_python": {
+        "suite_id": "short-python-v1",
+        "settings": {
+          "temperature": 0,
+          "seed": 42,
+          "max_tokens": 2048,
+          "reasoning_effort": "medium"
+        },
+        "passed": 5,
+        "total": 6,
+        "tasks": [
+          {
+            "task": "merge-intervals",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 959,
+            "generation_tokens_per_second": 11.69876581684129
+          },
+          {
+            "task": "binary-metrics",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 1228,
+            "generation_tokens_per_second": 9.936749069365142
+          },
+          {
+            "task": "flatten-dict",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 863,
+            "generation_tokens_per_second": 9.638330158629136
+          },
+          {
+            "task": "dependency-order",
+            "passed": false,
+            "finish_reason": "length",
+            "completion_tokens": 2048,
+            "generation_tokens_per_second": 9.268781817770758
+          },
+          {
+            "task": "parse-env",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 869,
+            "generation_tokens_per_second": 9.514707704726392
+          },
+          {
+            "task": "batch-iterable",
+            "passed": true,
+            "finish_reason": "stop",
+            "completion_tokens": 1029,
+            "generation_tokens_per_second": 11.775558721337898
+          }
+        ]
+      }
+    }
+  ],
+  "conclusion": "Both models passed 5/6 medium-reasoning short-Python tasks and hit the 2048-token limit on dependency-order. AD had a 7.0% higher two-run median generation rate, but the cool reverse-order runs were effectively tied. The smaller UD V3 quant is not proven better on this coding gate."
+}

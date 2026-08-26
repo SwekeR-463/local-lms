@@ -554,3 +554,179 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-08-17 15:46:48 IST` — qwen38-27b-ud-q3: server started with PID 22897; log results/server-20260817-154647.log
 
 - `2026-08-17 15:47:23 IST` — stopped project server PID 22897
+
+- `2026-08-19 16:45:15 IST` — qwen38-27b-ad-iq3-dflash2: model resolver selected Qwen3.8-27B-AD-IQ3_S.gguf (13838267872 bytes)
+
+- `2026-08-19 16:48:09 IST` — qwen38-27b-ad-iq3-dflash2: draft model ready: Qwen3.8-27B-DFlash2-Q4_K_M.gguf (1143006752 bytes)
+
+- `2026-08-19 16:48:52 IST` — preflight completed; report saved at results/preflight-20260819-164851.txt
+
+- `2026-08-19 16:48:53 IST` — qwen38-27b-ad-iq3: server started with PID 86106; log results/server-20260819-164852.log
+
+- `2026-08-19 16:49:30 IST` — stopped project server PID 86106
+
+- `2026-08-19 16:50:00 IST` — preflight completed; report saved at results/preflight-20260819-165000.txt
+
+- `2026-08-19 16:50:02 IST` — qwen38-27b-ad-iq3-dflash2: server started with PID 88992; log results/server-20260819-165000.log
+
+- `2026-08-19 16:51:02 IST` — stopped project server PID 88992
+
+- `2026-08-19 16:51:58 IST` — preflight completed; report saved at results/preflight-20260819-165158.txt
+
+- `2026-08-19 16:52:00 IST` — qwen38-27b-ad-iq3-dflash2: server started with PID 89391; log results/server-20260819-165159.log
+
+- `2026-08-19 16:53:15 IST` — stopped project server PID 89391
+
+- `2026-08-19 16:54:17 IST` — preflight completed; report saved at results/preflight-20260819-165417.txt
+
+- `2026-08-19 16:54:18 IST` — qwen38-27b-ud-q3: server started with PID 89767; log results/server-20260819-165417.log
+
+- `2026-08-19 16:55:00 IST` — stopped project server PID 89767
+
+- `2026-08-19 16:55:30 IST` — preflight completed; report saved at results/preflight-20260819-165530.txt
+
+- `2026-08-19 16:55:31 IST` — qwen38-27b-ud-q3-dflash2: server started with PID 90082; log results/server-20260819-165530.log
+
+- `2026-08-19 16:56:43 IST` — stopped project server PID 90082
+
+- `2026-08-19 16:57:45 IST` — preflight completed; report saved at results/preflight-20260819-165745.txt
+
+- `2026-08-19 16:57:46 IST` — qwen38-27b-ad-iq3-dflash2: server started with PID 90452; log results/server-20260819-165745.log
+
+- `2026-08-19 16:58:35 IST` — stopped project server PID 90452
+
+- `2026-08-19 16:59:06 IST` — preflight completed; report saved at results/preflight-20260819-165905.txt
+
+- `2026-08-19 16:59:07 IST` — qwen38-27b-ad-iq3-dflash2: server started with PID 90777; log results/server-20260819-165906.log
+
+- `2026-08-19 16:59:58 IST` — stopped project server PID 90777
+
+- `2026-08-19 17:01:51 IST` — preflight completed; report saved at results/preflight-20260819-170151.txt
+
+- `2026-08-19 17:01:52 IST` — qwen38-27b-ad-iq3-dflash2: server started with PID 91176; log results/server-20260819-170151.log
+
+- `2026-08-19 17:02:31 IST` — stopped project server PID 91176
+
+- `2026-08-19 17:03:17 IST` — preflight completed; report saved at results/preflight-20260819-170316.txt
+
+- `2026-08-19 17:03:18 IST` — qwen38-27b-ad-iq3: server started with PID 91484; log results/server-20260819-170317.log
+
+- `2026-08-19 17:03:53 IST` — stopped project server PID 91484
+
+- `2026-08-19 17:08:03 IST` — preflight completed; report saved at results/preflight-20260819-170803.txt
+
+- `2026-08-19 17:08:05 IST` — qwen38-27b-ad-iq3: server started with PID 98708; log results/server-20260819-170804.log
+
+## Qwen3.8 27B DFlash2 smoke tests — 2026-08-19
+
+- Built llama.cpp PR #27342 at commit `5ecbe1ac17ec0484c5b44af0bd580cdc9c428ed4` with Metal in a separate ignored worktree, leaving the pinned upstream build unchanged.
+- Downloaded and checksum-verified `incoai/Qwen3.8-27B-DFlash2-GGUF` revision `6cb5872e2cee6b4e780a8414922350be8e42d65c`, file `Qwen3.8-27B-DFlash2-Q4_K_M.gguf` (1,143,006,752 bytes; SHA-256 `18a380efc9b7ed8d88677fc895f5c11ae170653434ee378f7348f715c14d0594`).
+- Used 65,536 context, `f16/f16` KV cache, xhigh reasoning, temperature 0, seed 42, one request at a time, and the deterministic 512-token benchmark prompt.
+- AD-IQ3_S autoregressive decoding measured 15.19 and 15.91 tok/s, for a 15.55 tok/s median. DFlash2 `n-max=3` measured 11.69 and 14.33 tok/s, for a 13.01 tok/s median: 16.3% slower with 68.8% draft-token acceptance. Exploratory `n-max=5` and `n-max=7` runs measured 10.57 and 7.10 tok/s.
+- UD-Q3_K_XL measured 13.77 tok/s without speculation and 7.53 tok/s with DFlash2 `n-max=7`, 45.3% slower with 37.4% draft-token acceptance.
+- Every speculative response was byte-identical to its matching deterministic baseline. The Q4_K_M draft added roughly 1.7–2.5 GiB process RSS.
+- DFlash2 did not accelerate either Q3 target in these short smoke tests. The faster IQ3/Q3 target decoding and lower acceptance did not offset draft and verification overhead. These are not sustained-performance estimates.
+- Machine-readable results are in `results/qwen38-27b-dflash2-smoke-results.json`; individual raw runs remain locally under ignored `results/qwen38-dflash2-raw/`.
+
+- `2026-08-19 17:40:23 IST` — stopped project server PID 98708
+
+- `2026-08-19 17:40:23 IST` — preflight completed; report saved at results/preflight-20260819-174023.txt
+
+- `2026-08-19 17:40:24 IST` — qwen38-27b-ad-iq3: server started with PID 15649; log results/server-20260819-174023.log
+
+- `2026-08-19 19:43:21 IST` — stopped project server PID 15649
+
+## Qwen3.8 27B UD-Q3_K_XL Dynamic V3.0 — 2026-08-19
+
+- Unsloth replaced the original UD-Q3_K_XL with a Dynamic V3.0 quant at repository commit `313447f257f7ebde0b968e4778feef774546ed81`.
+- Downloaded it alongside the original under `models/qwen38-27b-ud-q3-v3/`, rather than overwriting the prior benchmark model.
+- Verified size: 13,146,393,504 bytes; SHA-256: `8c2a45ff85e7674ca185ec8eb6cdeab0e617ed9d8018caed0b64380eb2a67a5e`.
+- The original file is 13,441,059,904 bytes with SHA-256 `00cf92e666c6af6566996c38c89a44ccdb6449ea25ef0f112a452c853b2a71e2`.
+- Both files contain 866 tensors, but their tensor-type allocations differ substantially, confirming that this is a new quantization recipe rather than a metadata-only update.
+- The prior matched-corpus figure recorded in this workbench was 91.869% top-token agreement. A later independent WikiText-2 comparison measured the original file at 92.396% top-1 agreement and 0.031355 mean KLD; those figures use a different evaluation corpus.
+- Unsloth's Dynamic V3.0 graph places the new UD-Q3_K_XL at approximately 93% top-1 agreement and approximately 0.022 mean KLD. The graph does not publish exact tabular values, so these are plot readings and must not be presented as exact or directly mixed with the earlier corpus results.
+- Unsloth describes the August 19 Dynamic V3.0 update as roughly 10% more accuracy at the same size. Independent coding and runtime comparisons are still pending.
+
+- `2026-08-19 22:44:12 IST` — preflight completed; report saved at results/preflight-20260819-224411.txt
+
+- `2026-08-19 22:51:18 IST` — preflight completed; report saved at results/preflight-20260819-225117.txt
+
+- `2026-08-19 22:51:19 IST` — qwen38-27b-ad-iq3: server started with PID 72965; log results/server-20260819-225118.log
+
+- `2026-08-19 23:01:31 IST` — stopped project server PID 72965
+
+- `2026-08-19 23:02:32 IST` — preflight completed; report saved at results/preflight-20260819-230231.txt
+
+- `2026-08-19 23:02:33 IST` — qwen38-27b-ud-q3-v3: server started with PID 73958; log results/server-20260819-230232.log
+
+- `2026-08-19 23:15:00 IST` — stopped project server PID 73958
+
+- `2026-08-19 23:16:13 IST` — preflight completed; report saved at results/preflight-20260819-231612.txt
+
+- `2026-08-19 23:16:14 IST` — qwen38-27b-ud-q3-v3: server started with PID 81631; log results/server-20260819-231613.log
+
+- `2026-08-19 23:16:51 IST` — stopped project server PID 81631
+
+- `2026-08-19 23:17:51 IST` — preflight completed; report saved at results/preflight-20260819-231751.txt
+
+- `2026-08-19 23:17:52 IST` — qwen38-27b-ad-iq3: server started with PID 81971; log results/server-20260819-231751.log
+
+- `2026-08-19 23:18:31 IST` — stopped project server PID 81971
+
+## AD-IQ3_S versus UD-Q3_K_XL Dynamic V3.0 — 2026-08-19
+
+- Compared both models with the same llama.cpp PR #27342 runtime, 65,536 context, `f16/f16` KV cache, temperature 0, seed 42, and one active request.
+- Medium-reasoning short-Python result: 5/6 for each model. Both passed the same five tasks and exhausted the 2,048-token limit on `dependency-order`; the failure is therefore a constrained-completion tie, not a demonstrated algorithmic regression.
+- AD-IQ3_S generation runs: 13.81 and 15.20 tok/s; median 14.50 tok/s.
+- UD-Q3_K_XL V3 generation runs: 11.91 and 15.21 tok/s; median 13.56 tok/s.
+- AD's two-run median was 7.0% faster, but the reverse-order cool runs were effectively tied at 15.20 tok/s, so the small sample shows substantial thermal/order sensitivity.
+- UD V3 is 691,874,368 bytes (5.0%) smaller. It saves storage and some RSS, but did not improve this coding gate over AD-IQ3_S.
+- Machine-readable comparison: `results/qwen38-27b-ad-vs-ud-v3-comparison.json`. Raw benchmark runs remain ignored.
+
+- `2026-08-19 23:33:52 IST` — preflight completed; report saved at results/preflight-20260819-233351.txt
+
+- `2026-08-19 23:33:53 IST` — qwen38-27b-ad-iq3: server started with PID 89945; log results/server-20260819-233352.log
+
+- `2026-08-19 23:35:09 IST` — stopped project server PID 89945
+
+- `2026-08-19 23:35:23 IST` — preflight completed; report saved at results/preflight-20260819-233523.txt
+
+- `2026-08-19 23:35:24 IST` — qwen38-27b-ad-iq3: server started with PID 90470; log results/server-20260819-233523.log
+
+- `2026-08-19 23:59:18 IST` — preflight completed; report saved at results/preflight-20260819-235918.txt
+
+- `2026-08-19 23:59:19 IST` — ornith15-9b-q8: server started with PID 5403; log results/server-20260819-235918.log
+
+- `2026-08-20 00:06:23 IST` — stopped project server PID 5403
+
+## Ornith 1.5 9B Q8_0 smoke test — 2026-08-19
+
+- Downloaded and checksum-verified `ornith-ai/Ornith-1.5-9B-GGUF` file `Ornith-1.5-9B-Q8_0.gguf` (9,527,501,248 bytes; SHA-256 `6874eeb25c71081dc8f0bbe88f3ebb786312447132745371cd980bce95d259b9`).
+- At 65,536 context with `f16/f16` KV cache, the 512-token speed smoke measured 28.02 generation tok/s, 258.13 prompt tok/s, and 11,658,800 KiB RSS.
+- The fixed medium-reasoning, 2,048-token short-Python gate scored 3/6. One completed answer used the wrong false-positive-rate denominator; `flatten-dict` and `dependency-order` exhausted the token limit without emitting code.
+- The model was nearly twice as fast as the tested Qwen3.8 27B Q3 models, but was not as reliable under the constrained coding budget. Machine-readable results: `results/ornith15-9b-q8-smoke-results.json`.
+
+- `2026-08-20 00:07:16 IST` — preflight completed; report saved at results/preflight-20260820-000716.txt
+
+- `2026-08-20 00:07:18 IST` — ornith15-9b-q8: server started with PID 12829; log results/server-20260820-000717.log
+
+- `2026-08-25 23:45:34 IST` — preflight completed; report saved at results/preflight-20260825-234528.txt
+
+- `2026-08-25 23:45:36 IST` — qwen38-27b-ud-q3-v3: server started with PID 4837; log results/server-20260825-234535.log
+
+- `2026-08-26 00:36:28 IST` — stopped project server PID 4837
+
+- `2026-08-26 14:56:11 IST` — preflight completed; report saved at results/preflight-20260826-145610.txt
+
+- `2026-08-26 14:56:12 IST` — qwen38-27b-ud-q3-v3: server started with PID 64443; log results/server-20260826-145611.log
+
+- `2026-08-26 14:56:27 IST` — stopped project server PID 64443
+
+## Upstream llama.cpp refresh — 2026-08-26
+
+- Fast-forwarded the isolated upstream checkout from `dd1ea524333b1e697489067d7a4c39c60d32beee` to current `origin/master` commit `11cd98842874cc1b87ac274bd2d5cceb38102bb2` (`0.3.0-dev`, build 278).
+- Rebuilt `llama-server` in Release mode with Metal and Accelerate; the pinned TurboQuant checkout and separate DFlash2 worktree were not changed.
+- Updated the ignored local runtime pointer and removed the UD V3 Terminal-Bench override so `scripts/run.sh qwen38-27b-ud-q3-v3` now uses the refreshed upstream build and its tracked xhigh profile.
+- Verified the Dynamic V3.0 GGUF loads at 65,536 context, reports healthy, exposes the expected model path through `/v1/models`, and returns output through `/v1/chat/completions`.
+
+- `2026-08-27 00:00:12 IST` — preflight completed; report saved at results/preflight-20260827-000011.txt
