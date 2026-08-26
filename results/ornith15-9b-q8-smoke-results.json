@@ -1,0 +1,42 @@
+{
+  "model_id": "ornith15-9b-q8",
+  "model_name": "Ornith 1.5 9B Q8_0",
+  "run_at": "2026-08-19",
+  "model": {
+    "repository": "ornith-ai/Ornith-1.5-9B-GGUF",
+    "file": "Ornith-1.5-9B-Q8_0.gguf",
+    "bytes": 9527501248,
+    "sha256": "6874eeb25c71081dc8f0bbe88f3ebb786312447132745371cd980bce95d259b9"
+  },
+  "runtime": {
+    "hardware": "Mac",
+    "context": 65536,
+    "cache_type_k": "f16",
+    "cache_type_v": "f16"
+  },
+  "speed_smoke": {
+    "prompt_tokens": 38,
+    "completion_tokens": 512,
+    "prompt_tokens_per_second": 258.1276237314386,
+    "generation_tokens_per_second": 28.019510791404773,
+    "rss_kb": 11658800
+  },
+  "short_python": {
+    "suite_id": "short-python-v1",
+    "settings": {
+      "reasoning_effort": "medium",
+      "max_tokens": 2048
+    },
+    "passed": 3,
+    "total": 6,
+    "tasks": [
+      {"task": "merge-intervals", "passed": true, "finish_reason": "stop", "completion_tokens": 1922},
+      {"task": "binary-metrics", "passed": false, "finish_reason": "stop", "completion_tokens": 1561, "failure": "Used fp + fn instead of fp + tn as the false-positive-rate denominator."},
+      {"task": "flatten-dict", "passed": false, "finish_reason": "length", "completion_tokens": 2048},
+      {"task": "dependency-order", "passed": false, "finish_reason": "length", "completion_tokens": 2048},
+      {"task": "parse-env", "passed": true, "finish_reason": "stop", "completion_tokens": 1598},
+      {"task": "batch-iterable", "passed": true, "finish_reason": "stop", "completion_tokens": 1269}
+    ]
+  },
+  "conclusion": "The 9B Q8_0 model was nearly twice as fast as the tested Qwen3.8 27B Q3 models, but was less reliable under the fixed 2048-token coding budget: one completed answer had a substantive formula error and two tasks exhausted the output limit."
+}

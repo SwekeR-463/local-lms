@@ -11,11 +11,13 @@ config/local/
 .pytest_cache/
 __pycache__/
 results/autotune-*/
+results/baseline-*/
 results/cpu-moe-*/
 results/benchmark-*.json
 results/model-*.json
 results/preflight-*.txt
 /results/qwen38-ad-speed-matrix-*/
+/results/qwen38-dflash2-raw/
 /results/short-python-*/
 /results/terminal-bench/
 eval_results*/
