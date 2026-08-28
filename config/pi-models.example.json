@@ -11,69 +11,15 @@
       },
       "models": [
         {
-          "id": "kat-coder",
-          "name": "KAT-Coder V2.5 Dev APEX I-Mini (local)",
+          "id": "ornith15-35b-apex-compact",
+          "name": "Ornith 1.5 35B A3B APEX Compact (local)",
           "reasoning": true,
           "contextWindow": 131072,
-          "maxTokens": 16384,
-          "compat": {
-            "thinkingFormat": "qwen-chat-template"
-          }
-        },
-        {
-          "id": "kat-coder-mtp",
-          "name": "KAT-Coder V2.5 Dev MTP APEX I-Mini (local)",
-          "reasoning": true,
-          "contextWindow": 131072,
-          "maxTokens": 16384,
-          "compat": {
-            "thinkingFormat": "qwen-chat-template"
-          }
-        },
-        {
-          "id": "qwen3.6-35b-a3b",
-          "name": "Qwen3.6 35B A3B (local)",
-          "reasoning": true,
-          "contextWindow": 131072,
-          "maxTokens": 16384,
-          "compat": {
-            "thinkingFormat": "qwen-chat-template"
-          }
-        },
-        {
-          "id": "muse-glimmer-dflash",
-          "name": "Muse Glimmer 30B UD-Q2_K_XL + DFlash (local)",
-          "reasoning": true,
-          "contextWindow": 65536,
           "maxTokens": 16384
         },
         {
-          "id": "ornith-35b-i-mini",
-          "name": "Ornith 1.0 35B APEX I-Mini (local)",
-          "reasoning": true,
-          "contextWindow": 98304,
-          "maxTokens": 16384,
-          "compat": {
-            "thinkingFormat": "qwen-chat-template"
-          }
-        },
-        {
-          "id": "ling3-tiny-q8",
-          "name": "Ling 3.0 Tiny UD-Q8_K_XL (local)",
-          "reasoning": true,
-          "contextWindow": 131072,
-          "maxTokens": 65536
-        },
-        {
-          "id": "btl-4-compact",
-          "name": "BTL-4 Compact IQ2_XXS (local)",
-          "reasoning": true,
-          "contextWindow": 65536,
-          "maxTokens": 16384
-        },
-        {
-          "id": "qwen38-27b-iq3",
-          "name": "Qwen3.8 27B UD-IQ3_XXS (local)",
+          "id": "qwen38-27b-ud-q3-v3",
+          "name": "Qwen3.8 27B UD-Q3_K_XL Dynamic V3.0 (local)",
           "reasoning": true,
           "contextWindow": 65536,
           "maxTokens": 16384

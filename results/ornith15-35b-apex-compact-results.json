@@ -1,0 +1,68 @@
+{
+  "model_id": "ornith15-35b-apex-compact",
+  "model_name": "Ornith 1.5 35B A3B APEX Compact",
+  "model": {
+    "repository": "mudler/Ornith-1.5-35B-A3B-APEX-GGUF",
+    "file": "Ornith-1.5-35B-A3B-APEX-Compact.gguf",
+    "bytes": 16538851328,
+    "sha256": "846eb4121c1b28df0e2dff06c3f3d174084231a7400c649ba02023843ea41021"
+  },
+  "runtime": {
+    "llama_cpp_commit": "11cd98842874cc1b87ac274bd2d5cceb38102bb2",
+    "hardware": "Mac",
+    "cache_type_k": "f16",
+    "cache_type_v": "f16"
+  },
+  "speed_smokes": [
+    {
+      "context": 65536,
+      "rss_kb": 17795376,
+      "prompt_tokens_per_second": 68.73884124402831,
+      "generation_tokens_per_second": 49.07192599915147
+    },
+    {
+      "context": 131072,
+      "rss_kb": 18877280,
+      "prompt_tokens_per_second": 151.4976338461661,
+      "generation_tokens_per_second": 32.24094166768195
+    }
+  ],
+  "long_context_validation": {
+    "configured_context": 131072,
+    "actual_prompt_tokens": 97108,
+    "completion_tokens": 79,
+    "prompt_tokens_per_second": 162.53153310161593,
+    "generation_tokens_per_second": 17.081016355511135,
+    "finish_reason": "stop"
+  },
+  "short_python": [
+    {
+      "context": 65536,
+      "max_tokens": 2048,
+      "requested_reasoning_effort": "medium",
+      "passed": 4,
+      "total": 6,
+      "failures": [
+        {"task": "binary-metrics", "finish_reason": "length", "completion_tokens": 2048},
+        {"task": "dependency-order", "finish_reason": "length", "completion_tokens": 2048}
+      ]
+    },
+    {
+      "context": 131072,
+      "max_tokens": 16384,
+      "requested_reasoning_effort": "xhigh",
+      "reasoning_effort_note": "Ornith reasons natively; its template may ignore named reasoning-effort levels.",
+      "passed": 6,
+      "total": 6,
+      "tasks": [
+        {"task": "merge-intervals", "completion_tokens": 621, "generation_tokens_per_second": 31.49130850043874},
+        {"task": "binary-metrics", "completion_tokens": 3689, "generation_tokens_per_second": 33.584597666400455},
+        {"task": "flatten-dict", "completion_tokens": 984, "generation_tokens_per_second": 34.17982230525829},
+        {"task": "dependency-order", "completion_tokens": 2182, "generation_tokens_per_second": 34.07686096143871},
+        {"task": "parse-env", "completion_tokens": 1497, "generation_tokens_per_second": 41.99592246542115},
+        {"task": "batch-iterable", "completion_tokens": 1108, "generation_tokens_per_second": 67.49085581209667}
+      ]
+    }
+  ],
+  "conclusion": "The Compact quant was stable at 131072 configured context and passed all six coding tasks when output truncation was removed. The 2048-token failures were constrained-completion failures, not evaluator-detected wrong answers."
+}
