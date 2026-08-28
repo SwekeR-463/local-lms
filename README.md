@@ -146,9 +146,13 @@ It is the fastest large model measured in this workbench:
 
 RSS includes mmap-backed pages and is not entirely private physical memory. For comparison, the dense Qwen3.8 27B Q3 models generate at 14–15 tok/s on the same machine.
 
+![Ornith 1.5 35B Compact generation throughput versus other local models](results/plots/ornith15_35b_generation.png)
+
 A long-context request processed 97,108 actual prompt tokens at 162.53 tok/s and then generated at 17.08 tok/s, finishing normally. The validation harness's character estimate undershot the configured 131,072-token ceiling, so a near-window fill remains untested.
 
 On the six-task `short-python-v1` suite, Ornith scored 4/6 at medium reasoning with a 2,048-token limit, then **6/6** at 131,072 context with a 16,384-token allowance. The two former failures completed in 3,689 and 2,182 tokens, confirming they were constrained-completion failures, not wrong code. The second run requested `xhigh`, but Ornith reasons natively and its template may ignore named reasoning-effort levels. Machine-readable results are in `results/ornith15-35b-apex-compact-results.json`.
+
+![Ornith 1.5 35B Compact short-python scores across output budgets](results/plots/ornith15_35b_short_python.png)
 
 ## Mac results
 
