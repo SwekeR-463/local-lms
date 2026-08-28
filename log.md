@@ -730,3 +730,48 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Verified the Dynamic V3.0 GGUF loads at 65,536 context, reports healthy, exposes the expected model path through `/v1/models`, and returns output through `/v1/chat/completions`.
 
 - `2026-08-27 00:00:12 IST` — preflight completed; report saved at results/preflight-20260827-000011.txt
+
+- `2026-08-27 00:37:56 IST` — ornith15-35b-apex-compact: model resolver selected Ornith-1.5-35B-A3B-APEX-Compact.gguf (16538851328 bytes)
+
+- `2026-08-27 00:38:09 IST` — preflight completed; report saved at results/preflight-20260827-003809.txt
+
+- `2026-08-27 00:40:09 IST` — preflight completed; report saved at results/preflight-20260827-004008.txt
+
+- `2026-08-27 00:40:11 IST` — ornith15-35b-apex-compact: server started with PID 76829; log results/server-20260827-004010.log
+
+- `2026-08-27 00:43:26 IST` — stopped project server PID 76829
+
+- `2026-08-27 00:44:17 IST` — preflight completed; report saved at results/preflight-20260827-004416.txt
+
+- `2026-08-27 00:44:18 IST` — qwen38-27b-ad-iq3: server started with PID 77478; log results/server-20260827-004417.log
+
+- `2026-08-27 00:55:35 IST` — stopped project server PID 77478
+
+- `2026-08-27 00:56:05 IST` — preflight completed; report saved at results/preflight-20260827-005605.txt
+
+- `2026-08-27 00:56:06 IST` — qwen38-27b-ud-q3-v3: server started with PID 78761; log results/server-20260827-005605.log
+
+- `2026-08-28 20:40:07 IST` — preflight completed; report saved at results/preflight-20260828-204006.txt
+
+- `2026-08-28 20:40:08 IST` — ornith15-35b-apex-compact: server started with PID 58771; log results/server-20260828-204007.log
+
+- `2026-08-28 20:50:30 IST` — ornith15-35b-apex-compact: preferred validation passed at context 131072
+
+- `2026-08-28 20:50:31 IST` — stopped project server PID 58771
+
+- `2026-08-28 20:52:35 IST` — preflight completed; report saved at results/preflight-20260828-205235.txt
+
+- `2026-08-28 20:52:37 IST` — ornith15-35b-apex-compact: server started with PID 60357; log results/server-20260828-205236.log
+
+- `2026-08-28 20:57:15 IST` — stopped project server PID 60357
+
+## Ornith 1.5 35B A3B APEX Compact — 2026-08-27 to 2026-08-28
+
+- Downloaded and checksum-verified `mudler/Ornith-1.5-35B-A3B-APEX-GGUF` file `Ornith-1.5-35B-A3B-APEX-Compact.gguf` (16,538,851,328 bytes; SHA-256 `846eb4121c1b28df0e2dff06c3f3d174084231a7400c649ba02023843ea41021`).
+- With `f16/f16` KV cache, the 65,536-context speed smoke measured 49.07 generation tok/s and 17,795,376 KiB RSS. At 131,072 configured context it measured 32.24 generation tok/s and 18,877,280 KiB RSS. RSS includes mmap-backed pages and is not entirely private physical memory.
+- A long-context request processed 97,108 actual prompt tokens at 162.53 tok/s, generated 79 tokens at 17.08 tok/s, and stopped normally. The validation harness's character estimate undershot the configured 131,072-token ceiling.
+- The fixed 2,048-token coding gate scored 4/6; both failures exhausted the output limit. Repeating at 131,072 context with a 16,384-token allowance scored 6/6. The formerly truncated tasks completed in 3,689 and 2,182 tokens, confirming constrained-completion failures rather than wrong submitted code.
+- The second run requested `xhigh`, but Ornith reasons natively and its template may ignore named reasoning-effort levels. Machine-readable results: `results/ornith15-35b-apex-compact-results.json`.
+- Reduced the tracked Pi example and the local Pi configuration to Ornith Compact and Qwen3.8 UD-Q3_K_XL Dynamic V3.0, each with a 16,384-token output limit.
+
+- `2026-08-28 21:32:40 IST` — preflight completed; report saved at results/preflight-20260828-213240.txt
