@@ -101,3 +101,19 @@ Current status: **131k context achieved** on RTX 4050 Max-Q with the I-Mini GGUF
 3. Optionally run full `scripts/autotune.sh` — but 800+ candidates would take 12+ hours.
 4. Consider A/B testing `ngram-mod` speculative decoding and `--cache-ram` as second-stage optimizations.
 5. Monitor swap usage during prolonged 131k runs.
+
+### Tool calling fix — chat template swap
+
+- `2026-07-25` — tool calls were silently broken: the GGUF's embedded chat template (and the `--chat-template chatml` preset used in the launch command) is a bare role/content loop with no `tools` handling, so llama.cpp dropped all tool definitions from the prompt (verified: a request with a tool defined produced only 19 prompt tokens and the model replied "I cannot use tools").
+  - Fix: downloaded the official KAT-Coder-V2.5-Dev chat template (7,764 bytes, full `<tool_call>` support) from [Kwaipilot/KAT-Coder-V2.5-Dev](https://huggingface.co/Kwaipilot/KAT-Coder-V2.5-Dev) `tokenizer_config.json` → saved as `katcoder-chat-template.jinja` in the project root.
+  - Launch command changed: `--chat-template chatml` → `--chat-template-file ./katcoder-chat-template.jinja`, plus `--reasoning-format deepseek` so `<think>` blocks are parsed into `reasoning_content` instead of polluting reply text. All other flags unchanged.
+  - Verified: tool-call test now returns a proper `tool_calls` array (`get_weather({"city":"Paris"})`) with empty content. Server restarted via SSH with the new flags and is healthy on port 8000.
+  - Client side: added provider entry to pi's `~/.pi/agent/models.json` (`katcoder`, baseURL `http://192.168.29.206:8000/v1`, contextWindow 131072, maxTokens 16384).
+
+- `2026-07-25` (follow-up) — remote clients got "Connection error" after a manual restart: the server had been relaunched with `--host 127.0.0.1` (localhost-only), so the Mac client could not reach it. Relaunched with `--host 0.0.0.0`; README command now documents `0.0.0.0` as the default (with `127.0.0.1` noted as the local-only option).
+  - Verified end-to-end from the Mac: non-streaming, streaming, and agent-style prompts all return structured `tool_calls` with `finish_reason: "tool_calls"`, and `<think>` content arrives as `reasoning_content`.
+  - Note: a client session that contains broken-era assistant messages (raw XML pseudo-tool-calls from the chatml period) causes the model to imitate that broken format. Start a fresh client session rather than resuming a poisoned one.
+
+---
+
+Built together using GPT-5.6 — Luna ($2.93), DeepSeek V4 Pro ($0.15) in OpenCode, and Kimi K3 ($1.20).

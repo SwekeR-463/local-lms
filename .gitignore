@@ -5,3 +5,4 @@ config/selected.env
 *.pid
 .venv/
 eval_results*/
+*.jinja

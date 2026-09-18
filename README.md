@@ -103,7 +103,7 @@ Or run the winning 131k configuration directly:
 # Paths are relative — run from the project root
 ./.cache/llama-cpp-turboquant/build/bin/llama-server \
   -m ./models/KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf \
-  --host 127.0.0.1 --port 8000 \
+  --host 0.0.0.0 --port 8000 \
   --ctx-size 131072 \
   --threads 8 --threads-batch 12 \
   --parallel 1 \
@@ -111,14 +111,35 @@ Or run the winning 131k configuration directly:
   --ubatch-size 512 --batch-size 512 \
   --n-cpu-moe 32 \
   --seed 42 \
-  --chat-template chatml\
+  --reasoning-format deepseek \
+  --chat-template-file ./katcoder-chat-template.jinja \
   -ngl 99 -fa on --jinja --metrics
 ```
 
-> **Remote access (e.g., from OpenCode on another machine):**
-> Change `--host 127.0.0.1` to `--host 0.0.0.0` so the server listens on all
-> interfaces. Then point OpenCode at `http://<laptop-ip>:8000/v1`.
+> **Tool calling:** do NOT use `--chat-template chatml`. The GGUF's embedded
+> template (and the built-in `chatml` preset) is a bare role/content loop with
+> no `tools` handling — llama.cpp silently drops all tool definitions, so the
+> model never sees them. `katcoder-chat-template.jinja` (in this repo) is the
+> official KAT-Coder-V2.5-Dev template from
+> [Kwaipilot/KAT-Coder-V2.5-Dev](https://huggingface.co/Kwaipilot/KAT-Coder-V2.5-Dev)
+> with full `<tool_call>` support. `--reasoning-format deepseek` splits `<think>`
+> blocks out of the reply text.
+>
+> Verify tool calling:
+>
+> ```bash
+> curl http://127.0.0.1:8000/v1/chat/completions \
+>   -H 'Content-Type: application/json' \
+>   -d '{"messages":[{"role":"user","content":"weather in Paris?"}],"tools":[{"type":"function","function":{"name":"get_weather","description":"Get weather for a city","parameters":{"type":"object","properties":{"city":{"type":"string"}},"required":["city"]}}}],"max_tokens":200}'
+> ```
+>
+> The response must contain a `tool_calls` array, not plain text.
+
+> **Remote access (e.g., from pi/OpenCode on another machine):**
+> The command above already uses `--host 0.0.0.0`, so the server listens on all
+> interfaces. Point the client at `http://<laptop-ip>:8000/v1`.
 > The laptop IP: `hostname -I | awk '{print $1}'`
+> Use `--host 127.0.0.1` instead if the server should only be reachable locally.
 
 Then test:
 
@@ -148,4 +169,4 @@ Use `--dry-run` to inspect the candidate matrix without launching models. Use `-
 
 ---
 
-Built together using GPT-5.6 — Luna ($2.93) and DeepSeek V4 Pro ($0.15) in OpenCode.
+Built together using GPT-5.6 — Luna ($2.93), DeepSeek V4 Pro ($0.15) in OpenCode, and Kimi K3 ($1.20).
