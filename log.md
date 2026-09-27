@@ -775,3 +775,37 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Reduced the tracked Pi example and the local Pi configuration to Ornith Compact and Qwen3.8 UD-Q3_K_XL Dynamic V3.0, each with a 16,384-token output limit.
 
 - `2026-08-28 21:32:40 IST` — preflight completed; report saved at results/preflight-20260828-213240.txt
+
+- `2026-09-18 10:40:02 IST` — ternary-bonsai-2-27b: server started with PID 113898; log results/server-20260918-104001.log
+
+- `2026-09-18 10:42:53 IST` — ternary-bonsai-2-27b: ran prism-ml/Ternary-Bonsai-2-27B-gguf via PrismML llama.cpp fork (prism @ 5d80cff, CUDA sm_89); stock llama.cpp cannot load PTQ1_0/PQ2_0. Winner PQ2_0 -ngl 47 -c 8192 -ub 128: 0.88 tok/s decode, 4.17 tok/s prompt, 5.3-5.7 GiB VRAM, verified via scripts/run.sh. PTQ1_0 cannot fully offload (weights 5.67 GiB vs 5666 MiB free VRAM; auto-fit cut to 39/65) and its CPU matmul is scalar-only (arch-fallback.h). Measurements in results/ternary-bonsai-2-27b-offload.json; profile config/models/ternary-bonsai-2-27b.env, machine winner in config/local/.
+
+- `2026-09-18 11:02:17 IST` — ternary-bonsai-2-27b: server started with PID 119854; log results/server-20260918-110216.log
+
+- `2026-09-18 11:03:14 IST` — ternary-bonsai-2-27b CPU-only measured: PQ2_0 0.26 tok/s decode / 0.96 tok/s prompt (-ngl 0 -t 12), PTQ1_0 0.11 tok/s decode; CPU-only is ~3.4x slower than the tuned 47-layer GPU offload (0.88/4.17). Winner config restored via scripts/run.sh.
+
+- `2026-09-18 12:35:26 IST` — ternary-bonsai-2-27b: server started with PID 148898; log results/server-20260918-123524.log
+
+- `2026-09-18 12:59:52 IST` — ternary-bonsai-2-27b: server started with PID 155832; log results/server-20260918-125951.log
+
+- `2026-09-18 13:01:39 IST` — ternary-bonsai-2-27b: wrote AVX2/AVX-VNNI PQ2_0 CPU vec_dot kernel patch (patches/pq2_0-avx2-cpu-kernel.patch, 30+/14- in arch/x86/quants.c): standalone 4.48x vs scalar generic, unit-test PASS 512/512 incl. all-code-3 stress. In-server: 47-layer split decode 0.88 -> 1.27 tok/s (t8), prompt 4.17 -> 5.25 tok/s, CPU-only 0.26 -> 0.33 tok/s. 3-5 tok/s target not reached: residual ~600 ms/token serial floor (unfused GDN recurrence + per-layer small-op scheduling; fused GDN auto-disabled by device-mismatch probe, no CLI override; ngl 48 core dumps, 47 is the VRAM ceiling). Final config t8 ngl47 restored via run.sh, verified (7*8=56, 1.24 tok/s).
+
+- `2026-09-18 13:19:48 IST` — ternary-bonsai-2-27b: server started with PID 162574; log results/server-20260918-131947.log
+
+- `2026-09-18 13:22:10 IST` — ternary-bonsai-2-27b: forced fused GDN cross-device via env-gated patch (patches/force-fgdn-crossdevice.patch, GGML_FORCE_FGDN=1): split decode 1.27 -> 1.42 tok/s (t8, verified Tokyo answer); Amdahl re-fit shows serial floor only ~605 -> ~530 ms/token (t4 1.13 / t8 1.42), remaining cost is the per-layer CPU<->GPU pipeline, not GDN/matmul. ngl 48 core dumps, 47 stays the ceiling. 27B-only focus confirmed by user: deleted the downloaded Ternary-Bonsai-8B file (unwanted; was verifier-directed fallback), best config restored via scripts/run.sh and recorded in config/local.
+
+- `2026-09-18 14:27:17 IST` — ternary-bonsai-2-27b: recorded screen video of the model (PQ2_0, 47/65 layers, GGML_FORCE_FGDN) running a ZCode-style session analyzing /home/sweker/work: live find/du (43 projects, 96G), then streamed reasoning + full 8-line filesystem analysis via OpenAI API on Xvfb+kitty captured with ffmpeg x11grab. Deliverable: results/ternary-bonsai-27b-fs-analysis.mp4 (384 s, 1280x800@10fps, h264, 2.4 MB); verified frames: intro, real du output, streaming analysis, complete final answer.
+
+- `2026-09-18 15:36:57 IST` — ternary-bonsai-2-27b: recorded screen video of the model running inside the ZCode app (llama-server WebUI in the in-app browser pane): typed the work/ analysis request (company dir renamed to acme-corp at user request), live prompt-processing stats and streamed reasoning + final 8-line analysis (715 tok, 1.20 t/s). Captured via in-app browser tab recording (6x90s webm segments chained, stitched to mp4, 8.4 min). Old terminal take showing that name deleted; intermediate webms cleaned. Deliverable: results/ternary-bonsai-27b-zcode-chat.mp4.
+
+- `2026-09-19 18:30:43 IST` — models cleanup at user request: deleted Ternary-Bonsai-2-27B-PQ2_0.gguf and PTQ1_0.gguf (~13.1 GB freed, disk 225G->213G used); llama-server stopped first (was holding PQ2_0 open). KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf (13 GB, pre-existing, default kat-coder profile) left in place pending user decision. Re-download via scripts/download-model.sh <model-id>.
+
+- `2026-09-19 18:36:59 IST` — deleted KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf (13 GB) at user request; models/ directory now empty. All models re-downloadable via scripts/download-model.sh <model-id>.
+
+- `2026-09-26 22:56:47 IST` — ternary-bonsai-2-27b: server started with PID 404846; log results/server-20260926-225646.log
+
+- `2026-09-26 22:59:23 IST` — ternary-bonsai-2-27b: replicated the X post recipe (PTQ1_0 + -ngl 99 + -ot output.weight=CPU + new AVX2/VNNI SIMD PTQ1_0 head kernel): decode 1.76 -> 5.38 tok/s (scalar head baseline -> SIMD), pp 14.2 -> 33.5 tok/s, all 65 transformer layers on GPU, fused GDN auto-enabled, 5.5 GiB VRAM, -np 1 + q4_0 KV needed to fit. Unit test PASS (512/512 vs scalar generic, 4.24x standalone). Patch: patches/prism-fork-avx2-kernels.patch (all fork changes combined); run.sh gained a model-agnostic EXTRA_SERVER_ARGS passthrough; profiles updated to PTQ1_0. Server verified via scripts/run.sh (6*7=42, 5.22 tok/s). vs the tweet: 11.8 recorded — residual gap likely their CPU/RAM or leaner kernel; ours is 3.8x our previous best.
+
+- `2026-09-26 23:19:26 IST` — ternary-bonsai-2-27b: server started with PID 410405; log results/server-20260926-231925.log
+
+- `2026-09-26 23:20:14 IST` — ROOT CAUSE of the speed gap found: laptop was in power-saver platform profile (EPP=power, CPU pinned at 1.0 GHz of 4.6 GHz max, GPU mostly idle waiting). powerprofilesctl set performance -> CPU 4.5 GHz under load. PTQ1_0 + -ngl 99 + -ot output.weight=CPU + SIMD head kernel now: 12.7-13.2 tok/s decode, 65.7 tok/s pp (matches the X post 11.8; 9.1x the session start 1.42). Final config: PTQ1_0, t12, q4_0 KV, -np 1, -ub 128, 8k ctx; verified via scripts/run.sh.

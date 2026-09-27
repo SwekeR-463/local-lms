@@ -1,0 +1,128 @@
+{
+  "model_id": "ternary-bonsai-2-27b",
+  "model_name": "Ternary Bonsai 2 27B (ternary GGUF by Prism ML, Qwen3.8-27B base)",
+  "repository": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+  "server": {
+    "source": "https://github.com/PrismML-Eng/llama.cpp",
+    "branch": "prism",
+    "commit": "5d80cff",
+    "backend": "CUDA sm_89 (RTX 4050 Laptop, 6141 MiB)",
+    "note": "stock llama.cpp rejects PTQ1_0/PQ2_0 as unknown types; PrismML fork required"
+  },
+  "host": {
+    "cpu": "13th Gen Intel Core i5-13420H, 12 threads",
+    "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU, 6141 MiB VRAM",
+    "ram": "15 GiB"
+  },
+  "files": {
+    "PTQ1_0": {
+      "bytes": 5946648928,
+      "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+      "path": "models/Ternary-Bonsai-2-27B-PTQ1_0.gguf"
+    },
+    "PQ2_0": {
+      "bytes": 7206168928,
+      "sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1",
+      "path": "models/Ternary-Bonsai-2-27B-PQ2_0.gguf"
+    }
+  },
+  "offload_measurements": {
+    "PTQ1_0": [
+      {"ngl": 39, "ctx": 8192, "ubatch": 128, "vram_mib": 4167, "decode_tok_s": 0.29, "prompt_tok_s": 0.99},
+      {"ngl": 40, "ctx": 16384, "ubatch": 512, "vram_mib": 4493, "decode_tok_s": 0.3, "prompt_tok_s": 0.98},
+      {"ngl": 46, "ctx": 8192, "ubatch": 512, "vram_mib": 4825, "decode_tok_s": 0.36},
+      {"ngl": 52, "ctx": 8192, "ubatch": 128, "vram_mib": 5321, "decode_tok_s": 0.55}
+    ],
+    "PQ2_0": [
+      {"ngl": 30, "ctx": 8192, "ubatch": 128, "vram_mib": 4101, "decode_tok_s": 0.53, "prompt_tok_s": 1.71},
+      {"ngl": 44, "ctx": 8192, "ubatch": 128, "vram_mib": 5355, "decode_tok_s": 0.83},
+      {"ngl": 47, "ctx": 8192, "ubatch": 128, "vram_mib": 5347, "decode_tok_s": 0.88, "prompt_tok_s": 4.17, "winner": true},
+      {"ngl": 49, "ctx": 8192, "ubatch": 128, "result": "OOM at load (failed to create context)"}
+    ]
+  },
+  "cpu_only_measurements": {
+    "flags": "-ngl 0 -c 8192 -ub 512 -b 512 -t 12",
+    "PQ2_0": {"decode_tok_s": 0.26, "prompt_tok_s": 0.96, "log": "results/ternary-bonsai-pq2-cpu.log"},
+    "PTQ1_0": {"decode_tok_s": 0.11, "prompt_tok_s": null, "log": "results/ternary-bonsai-ptq-cpu.log"},
+    "verdict": "CPU-only is 3.4x slower decode and 4x slower prompt processing than the tuned 47-layer GPU offload (0.88/4.17 tok-s); PTQ1_0 on CPU is the worst option at 0.11 tok-s due to scalar-only ternary vec_dot"
+  },
+  "cpu_kernel_patch": {
+    "file": "patches/prism-fork-avx2-kernels.patch",
+    "target": "ggml/src/ggml-cpu/arch/x86/quants.c ggml_vec_dot_pq2_0_q8_0",
+    "what": "restructured PQ2_0 x q8_0 vec_dot: element-order 2-bit code spread, dpbusd u8x s8 dot minus sum(qy) on VNNI, maddubs path on plain AVX2 (new), single fp32 accumulator + one hsum per block (was 8 hsum_i32_8 per block); scalar fallback kept",
+    "unit_test": "/tmp/pq2_avx2_test.c: 512/512 randomized trials match generic incl. all-code-3 stress",
+    "standalone_bench": "7168x5120 GEMV layer: 9.8 ms vs 44.1 ms scalar generic = 4.48x (single thread)",
+    "in_server": {
+      "split_ngl47_decode_tok_s": {"before": 0.88, "after": 1.27, "best_threads": 8},
+      "split_ngl47_prompt_tok_s": {"before": 4.17, "after": 5.25},
+      "cpu_only_decode_tok_s": {"before": 0.26, "after": 0.33}
+    },
+    "bottleneck_after_kernel": "thread-count-independent serial floor ~600 ms/token (t4 1.03 / t6 1.10 / t8 1.27 / t12 1.19 tok/s): unfused Gated Delta Net recurrence + per-layer small-op graph scheduling, not matmul; fused GDN is auto-disabled by the device-mismatch probe (llama-context.cpp resolve_fused_ops, no CLI override)",
+    "ceiling": "ngl 48 aborts at load (core dump), 47 confirmed max VRAM fit"
+  },
+  "fused_gdn_experiment": {
+    "file": "patches/prism-fork-avx2-kernels.patch",
+    "what": "env-gated GGML_FORCE_FGDN in llama-context.cpp resolve_fused_ops: keeps fused_gdn_ar/ch enabled despite the layer-vs-fused-node device mismatch (only CUDA implements the fused op; sched copies state/inputs across PCIe for CPU-resident layers)",
+    "in_server_split_ngl47": {
+      "decode_tok_s": {"without": 1.27, "with_force_fgdn": 1.42},
+      "threads": {"t4": 1.13, "t8": 1.42}
+    },
+    "amdahl": "serial floor shrank only ~605 -> ~530 ms/token; remaining serial cost is the CPU<->GPU per-layer pipeline (small-op scheduling and sync for the 47/65 split), not GDN or matmul",
+    "verdict": "fused GDN kept as the new best config; 27B decode on this 6 GB laptop is architecturally capped near ~1.4 tok/s without scheduler-level work"
+  },
+  "screen_recording": {
+    "file": "results/ternary-bonsai-27b-zcode-chat.mp4",
+    "what": "8.4 min screen recording (1280x720@10fps h264) of Ternary-Bonsai-2-27B (PQ2_0, 47/65 layers, GGML_FORCE_FGDN) running in the llama-server WebUI opened inside the ZCode in-app browser: typed analysis request, prompt processing stats (154 tok @ 9 tok/s), live reasoning + final 8-line filesystem analysis of /home/sweker/work (43 projects, 96G), 715 tokens at 1.20 tok/s",
+    "capture": "ZCode in-app browser tab recording API (webm segments stitched via ffmpeg concat)",
+    "redaction": "one company directory renamed to 'acme-corp' in the shown data at the user's request (name not public); an earlier terminal-recording take that showed it was deleted",
+    "note": "WebUI Custom JSON setting: {\"chat_template_kwargs\": {\"reasoning_effort\": \"medium\"}} keeps the thinking budget bounded (715 tokens total vs 1400+ unbounded)"
+  },
+  "ptq1_0_head_cpu_recipe": {
+    "source": "https://x.com/cheese_cakee_9/status/2103884349162823919 (RTX 4050 laptop, same GPU class: 11.8 tok/s recorded, 15.3 unrecorded)",
+    "patch": "patches/prism-fork-avx2-kernels.patch (combined fork diff: PQ2_0 AVX2 kernel, PTQ1_0 AVX2 kernel, FGDN force experiment)",
+    "what": "PTQ1_0 (5.9 GB) with ALL 65 transformer layers on GPU (-ngl 99) and only the output head offloaded to CPU (-ot output.weight=CPU, frees ~265 MiB so PTQ1_0 fits); fused Gated Delta Net auto-enables (no device mismatch); new AVX2/VNNI ggml_vec_dot_ptq1_0_q8_0 SIMD kernel for the CPU-side head (fork's PTQ1_0 CPU path was scalar-only)",
+    "kernel_unit_test": "512/512 randomized trials match the scalar generic (bytes constrained to valid 5-trit encodings <= 242); standalone layer GEMV 4.24x vs generic",
+    "measurements": {
+      "scalar_head_baseline": {"decode_tok_s": 1.76, "prompt_tok_s": 14.22},
+      "simd_head": {"decode_tok_s": 5.38, "prompt_tok_s": 33.54, "threads": 10, "vram_mib": 5537},
+      "vs_pq2_0_split_previous_best": {"decode_tok_s": 1.42, "prompt_tok_s": 5.25}
+    },
+    "launch": "scripts/run.sh ternary-bonsai-2-27b --skip-preflight (EXTRA_SERVER_ARGS=-ot output.weight=CPU; requires run.sh extra-args passthrough added this session)",
+    "gap_vs_tweet": "RESOLVED: gap was power-saver platform profile (CPU pinned at 1.0 GHz of 4.6 GHz). powerprofilesctl set performance -> 12.7-13.2 tok/s decode, 65.7 tok/s pp; see power_profile_fix"
+  },
+  "power_profile_fix": {
+    "root_cause": "laptop in power-saver platform profile (EPP=power): ALL CPU cores pinned at 1.0 GHz of 4.6 GHz max during decode; GPU 80% idle waiting on CPU; all pre-fix measurements on this host were at ~1/4 clock",
+    "fix": "powerprofilesctl set performance (no sudo needed)",
+    "result": {
+      "decode_tok_s": 13.17,
+      "prompt_tok_s": 66.49,
+      "threads": 12,
+      "verified_via_runsh": {"decode_tok_s": 14.06, "prompt_tok_s": 67.69, "answer_check": "144 (12*12 correct)"}
+    },
+    "vs_tweet": "X post showed 11.8 recorded / 15.3 unrecorded on the same GPU class -> now matched and slightly exceeded"
+  },
+  "winner": {
+    "quant": "PTQ1_0",
+    "ngl": 99,
+    "head_on_cpu": true,
+    "extra_args": "-ot output.weight=CPU",
+    "ctx": 8192,
+    "threads": 12,
+    "kv": "q4_0 (fork kv-mean-center)",
+    "parallel": 1,
+    "decode_tok_s": 13.17,
+    "prompt_tok_s": 66.49,
+    "vram_mib": 5537,
+    "layers": "all 65 transformer layers on GPU; only output head (~265 MiB) on CPU",
+    "launch": "scripts/run.sh ternary-bonsai-2-27b --skip-preflight; requires performance power profile"
+  },
+  "notes": [
+    "PTQ1_0 cannot fully fit 6141 MiB VRAM: weights ~5.67 GiB alone equal free VRAM at launch (5666 MiB); auto-fit projected 6396 MiB used vs 5066 free at 8k ctx and reduced ngl to 39. Needs ~7 GB VRAM for full offload.",
+    "PTQ1_0 CPU matmul is generic scalar in this fork (arch-fallback.h: no SIMD vec_dot yet), ~0.14 s/layer vs PQ2_0 SIMD ~0.053 s/layer; this is why PTQ1_0 decode lags PQ2_0 despite its smaller file.",
+    "GPU util ~0% during decode is expected: GPU kernels are tiny under multi-second CPU steps; offload verified by linear speedup as ngl increases.",
+    "Fused Gated Delta Net (autoregressive/chunked) kernels reported unsupported on this build; unfused path used.",
+    "No speculative-decoding drafter ships for Ternary-Bonsai-2-27B (checked prism-ml repos); dspark drafter documented only for the older Bonsai-27B and needs a gguf-dspark-to-dflash conversion.",
+    "Chat template: Qwen3-style thinking model; sampling per model card: temp 1.0, top-p 0.95, top-k 20."
+  ],
+  "recorded_at": "2026-09-18T10:45:00+05:30"
+}
