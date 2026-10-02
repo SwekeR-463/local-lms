@@ -1,0 +1,262 @@
+diff --git a/ggml/src/ggml-cpu/arch-fallback.h b/ggml/src/ggml-cpu/arch-fallback.h
+index d283c2e..e4e2209 100644
+--- a/ggml/src/ggml-cpu/arch-fallback.h
++++ b/ggml/src/ggml-cpu/arch-fallback.h
+@@ -94,8 +94,6 @@
+ #define ggml_gemm_q2_K_8x8_q8_K_generic ggml_gemm_q2_K_8x8_q8_K
+ #define ggml_gemm_pq2_0_4x8_q8_0_generic ggml_gemm_pq2_0_4x8_q8_0
+ #elif defined(__x86_64__) || defined(__i386__) || defined(_M_IX86) || defined(_M_X64)
+-// PTQ1_0 currently has only the generic vec_dot; alias it here until a SIMD version lands
+-#define ggml_vec_dot_ptq1_0_q8_0_generic ggml_vec_dot_ptq1_0_q8_0
+ // quants.c
+ #define ggml_vec_dot_q2_0_q8_0_generic ggml_vec_dot_q2_0_q8_0
+ // repack.cpp
+diff --git a/ggml/src/ggml-cpu/arch/x86/quants.c b/ggml/src/ggml-cpu/arch/x86/quants.c
+index 7fc8e77..b573292 100644
+--- a/ggml/src/ggml-cpu/arch/x86/quants.c
++++ b/ggml/src/ggml-cpu/arch/x86/quants.c
+@@ -574,33 +574,49 @@ void ggml_vec_dot_pq2_0_q8_0(int n, float * GGML_RESTRICT s, size_t bs, const vo
+ 
+     float sumf = 0.0f;
+ 
+-#if (defined(__AVX512VNNI__) && defined(__AVX512VL__)) || defined(__AVXVNNI__)
+-    // AVX-VNNI / AVX-512-VNNI: unpack 2-bit codes c in {0,1,2,3} (value = c-1), then
+-    // dot((c-1), qy) = dpbusd(c, qy) - dpbusd(1, qy). Group 128 = four q8_0 sub-blocks.
+-    const __m256i ones   = _mm256_set1_epi8(1);
+-    const __m128i idxlo  = _mm_setr_epi8(0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3);
+-    const __m128i idxhi  = _mm_setr_epi8(4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7);
++#if defined(__AVX2__)
++    // Spread the four 2-bit code fields of each 8-byte sub-block to element order,
++    // subtract one to get signed weights in {-1,0,1,2}, and take one signed dot per
++    // sub-block. Group 128 = four q8_0 sub-blocks, each with its own fp16 scale.
++    const __m256i ones8  = _mm256_set1_epi8(1);
++    const __m256i ones16 = _mm256_set1_epi16(1);
+     const __m256i mul    = _mm256_setr_epi16(64,16,4,1, 64,16,4,1, 64,16,4,1, 64,16,4,1); // <<(6-2c)
+     const __m256i three  = _mm256_set1_epi16(3);
++    const __m128i idxlo  = _mm_setr_epi8(0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3);
++    const __m128i idxhi  = _mm_setr_epi8(4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7);
+     for (int i = 0; i < nb; i++) {
+         const float d0 = GGML_CPU_FP16_TO_FP32(x[i].d);
+-        float sumi = 0.0f;
++
++        __m256 accf = _mm256_setzero_ps();
++
+         for (int k = 0; k < 4; k++) {
+             const block_q8_0 * GGML_RESTRICT yb = &y[i * 4 + k];
+-            const float d1 = GGML_CPU_FP16_TO_FP32(yb->d);
+-            const __m256i qy = _mm256_loadu_si256((const __m256i *) yb->qs);
+             const __m128i src = _mm_loadl_epi64((const __m128i *) &x[i].qs[k * 8]); // 8 bytes
+             const __m256i rep = _mm256_set_m128i(_mm_shuffle_epi8(src, idxhi), _mm_shuffle_epi8(src, idxlo));
+             __m256i r0 = _mm256_cvtepu8_epi16(_mm256_castsi256_si128(rep));
+             __m256i r1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(rep, 1));
+             r0 = _mm256_and_si256(_mm256_srli_epi16(_mm256_mullo_epi16(r0, mul), 6), three);
+             r1 = _mm256_and_si256(_mm256_srli_epi16(_mm256_mullo_epi16(r1, mul), 6), three);
+-            __m256i codes = _mm256_permute4x64_epi64(_mm256_packus_epi16(r0, r1), 0xD8);
+-            const int dp = hsum_i32_8(GGML_DPBUSD_256(_mm256_setzero_si256(), codes, qy));
+-            const int sy = hsum_i32_8(GGML_DPBUSD_256(_mm256_setzero_si256(), ones,  qy));
+-            sumi += d1 * (float)(dp - sy);
++            const __m256i codes = _mm256_permute4x64_epi64(_mm256_packus_epi16(r0, r1), 0xD8);
++
++#if (defined(__AVX512VNNI__) && defined(__AVX512VL__)) || defined(__AVXVNNI__)
++            // dot((c-1), qy) = dot(c, qy) - sum(qy); unsigned codes via dpbusd
++            const __m256i qy = _mm256_loadu_si256((const __m256i *) yb->qs);
++            const __m256i dp = GGML_DPBUSD_256(_mm256_setzero_si256(), codes, qy);
++            const __m256i sq = GGML_DPBUSD_256(_mm256_setzero_si256(), ones8, qy);
++            const __m256i ss = _mm256_sub_epi32(dp, sq);
++#else
++            // dot(c, qy) - sum(qy) with unsigned codes; weight = (c-1) * d
++            const __m256i qy = _mm256_loadu_si256((const __m256i *) yb->qs);
++            const __m256i dp = _mm256_madd_epi16(ones16, _mm256_maddubs_epi16(codes, qy));
++            const __m256i sq = _mm256_madd_epi16(ones16, _mm256_maddubs_epi16(ones8, qy));
++            const __m256i ss = _mm256_sub_epi32(dp, sq);
++#endif
++            const float dd = d0 * GGML_CPU_FP16_TO_FP32(yb->d);
++            accf = _mm256_fmadd_ps(_mm256_set1_ps(dd), _mm256_cvtepi32_ps(ss), accf);
+         }
+-        sumf += d0 * sumi;
++
++        sumf += hsum_float_8(accf);
+     }
+ #else
+     for (int i = 0; i < nb; i++) {
+@@ -628,6 +644,158 @@ void ggml_vec_dot_pq2_0_q8_0(int n, float * GGML_RESTRICT s, size_t bs, const vo
+     *s = sumf;
+ }
+ 
++void ggml_vec_dot_ptq1_0_q8_0(int n, float * GGML_RESTRICT s, size_t bs, const void * GGML_RESTRICT vx, size_t bx, const void * GGML_RESTRICT vy, size_t by, int nrc) {
++    const int qk = QK_PTQ1_0;
++    const int nb = n / qk;
++
++    assert(n % qk == 0);
++    assert(nrc == 1);
++    UNUSED(nrc);
++    UNUSED(bx);
++    UNUSED(by);
++    UNUSED(bs);
++
++    const block_ptq1_0 * GGML_RESTRICT x = vx;
++    const block_q8_0   * GGML_RESTRICT y = vy;
++
++    float sumf = 0.0f;
++
++#if defined(__AVX2__)
++    // Decode the 128 trits of each block into element-order code bytes {0,1,2}
++    // (weight = code - 1) and take one dpbusd/maddubs dot per q8_0 sub-block.
++    // Element order follows dequantize_row_ptq1_0: qs bytes 0..15 emit trit n of
++    // each byte contiguously (elements 16n..16n+15), then bytes 16..23 emit
++    // elements 80+8n..87+8n, then the 8 qh trits. Digit extraction reuses the
++    // reference identity trit_n = ((byte * 3^n mod 256) * 3) >> 8.
++    const __m256i ones8  = _mm256_set1_epi8(1);
++    const __m256i ones16 = _mm256_set1_epi16(1);
++    const __m256i bmask  = _mm256_set1_epi16(0x00FF);
++    const __m128i bmaskl = _mm_set1_epi16(0x00FF);
++    const __m128i three  = _mm_set1_epi16(3);
++
++    for (int i = 0; i < nb; i++) {
++    const __m128i qsA = _mm_loadu_si128((const __m128i *) x[i].qs);        // bytes 0..15
++    const __m256i vA  = _mm256_cvtepu8_epi16(qsA);                          // 16 lanes
++    const __m128i qsB = _mm_loadl_epi64((const __m128i *) (x[i].qs + 16)); // bytes 16..23
++    const __m128i vB  = _mm_cvtepu8_epi16(qsB);                             // 8 lanes
++
++    // chunk A: digit n of bytes 0..15 -> elements 16n..16n+15 (already in order)
++    __m128i a[5];
++    {
++        __m256i t = vA;
++        for (int nn = 0; nn < 5; ++nn) {
++            if (nn > 0) {
++                t = _mm256_mullo_epi16(t, _mm256_set1_epi16(3)); // t = byte * 3^nn (exact in 16 bit)
++            }
++            const __m256i lo = _mm256_and_si256(t, bmask);       // (byte * 3^nn) mod 256
++            const __m256i tn = _mm256_srli_epi16(_mm256_mullo_epi16(lo, _mm256_set1_epi16(3)), 8);
++            // bytes of tn in order: pack low and high 128-bit halves
++            a[nn] = _mm_packus_epi16(_mm256_castsi256_si128(tn), _mm256_extracti128_si256(tn, 1));
++        }
++    }
++    // chunk B: digit n of bytes 16..23 -> elements 80+8n..87+8n
++    __m128i b[5];
++    {
++        __m128i t = vB;
++        for (int nn = 0; nn < 5; ++nn) {
++            if (nn > 0) {
++                t = _mm_mullo_epi16(t, three);
++            }
++            const __m128i lo = _mm_and_si128(t, bmaskl);
++            const __m128i tn = _mm_srli_epi16(_mm_mullo_epi16(lo, three), 8);
++            b[nn] = _mm_packus_epi16(tn, tn); // low 8 bytes
++        }
++    }
++    // qh: 2 bytes x 4 trits -> elements 120..127 (scalar; only 8 values per block)
++    uint8_t qh_dec[8];
++    {
++        static const uint8_t pow3[4] = {1, 3, 9, 27};
++        for (int nn = 0; nn < 4; ++nn) {
++            for (int h = 0; h < 2; ++h) {
++                const uint8_t v  = x[i].qh[h] * pow3[nn];
++                const int16_t xi = ((uint16_t) v * 3) >> 8;
++                qh_dec[nn * 2 + h] = (uint8_t) xi;
++            }
++        }
++    }
++    const __m128i vh = _mm_loadl_epi64((const __m128i *) qh_dec);
++
++    __m256 accf = _mm256_setzero_ps();
++    const __m256i codes[4] = {
++        _mm256_set_m128i(a[1], a[0]),                                  // elements 0..31
++        _mm256_set_m128i(a[3], a[2]),                                  // elements 32..63
++        _mm256_set_m128i(_mm_unpacklo_epi64(b[0], b[1]), a[4]),        // elements 64..95
++        _mm256_set_m128i(_mm_unpacklo_epi64(b[4], vh), _mm_unpacklo_epi64(b[2], b[3])), // elements 96..127
++    };
++
++    for (int k = 0; k < 4; k++) {
++        const block_q8_0 * GGML_RESTRICT yb = &y[i * 4 + k];
++        const __m256i qy = _mm256_loadu_si256((const __m256i *) yb->qs);
++#if (defined(__AVX512VNNI__) && defined(__AVX512VL__)) || defined(__AVXVNNI__)
++        const __m256i dp = GGML_DPBUSD_256(_mm256_setzero_si256(), codes[k], qy);
++        const __m256i sq = GGML_DPBUSD_256(_mm256_setzero_si256(), ones8, qy);
++        const __m256i ss = _mm256_sub_epi32(dp, sq);
++#else
++        const __m256i dp = _mm256_madd_epi16(ones16, _mm256_maddubs_epi16(codes[k], qy));
++        const __m256i sq = _mm256_madd_epi16(ones16, _mm256_maddubs_epi16(ones8, qy));
++        const __m256i ss = _mm256_sub_epi32(dp, sq);
++#endif
++        const float dd = GGML_CPU_FP16_TO_FP32(x[i].d) * GGML_CPU_FP16_TO_FP32(yb->d);
++        accf = _mm256_fmadd_ps(_mm256_set1_ps(dd), _mm256_cvtepi32_ps(ss), accf);
++    }
++
++    sumf += hsum_float_8(accf);
++    } // nb loop
++#else
++    static const uint8_t pow3[6] = {1, 3, 9, 27, 81, 243};
++    static const size_t  stages[3] = {32, 16, 8};
++
++    for (int i = 0; i < nb; i++) {
++        int8_t q[QK_PTQ1_0];
++        int o = 0;
++
++        size_t j = 0;
++        for (size_t st = 0; st < 3; ++st) {
++            const size_t c = stages[st];
++            for (; j + c <= sizeof(x->qs); j += c) {
++                for (size_t nn = 0; nn < 5; ++nn) {
++                    for (size_t m = 0; m < c; ++m) {
++                        const uint8_t v  = x[i].qs[j + m] * pow3[nn];
++                        const int16_t xi = ((uint16_t) v * 3) >> 8;
++                        q[o++] = (int8_t) (xi - 1);
++                    }
++                }
++            }
++        }
++        for (size_t nn = 0; nn < 4; ++nn) {
++            for (size_t h = 0; h < sizeof(x->qh); ++h) {
++                const uint8_t v  = x[i].qh[h] * pow3[nn];
++                const int16_t xi = ((uint16_t) v * 3) >> 8;
++                q[o++] = (int8_t) (xi - 1);
++            }
++        }
++        assert(o == QK_PTQ1_0);
++
++        const float d0 = GGML_CPU_FP16_TO_FP32(x[i].d);
++        float sumi = 0.0f;
++
++        for (int k = 0; k < 4; k++) {
++            const block_q8_0 * GGML_RESTRICT yb = &y[i * 4 + k];
++            const float d1 = GGML_CPU_FP16_TO_FP32(yb->d);
++            int sumi_block = 0;
++            for (int b = 0; b < 32; ++b) {
++                sumi_block += (int) q[k*32 + b] * (int) yb->qs[b];
++            }
++            sumi += d1 * sumi_block;
++        }
++
++        sumf += d0 * sumi;
++    }
++#endif
++
++    *s = sumf;
++}
++
+ void ggml_vec_dot_q1_0_q8_0(int n, float * GGML_RESTRICT s, size_t bs, const void * GGML_RESTRICT vx, size_t bx, const void * GGML_RESTRICT vy, size_t by, int nrc) {
+     const int qk = QK1_0;
+     const int nb = n / qk;
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 2c8fbd9..e62fbc9 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -662,8 +662,15 @@ void llama_context::resolve_fused_ops(const llama_memory_context_i * mctx, uint3
+ 
+     if (cparams.auto_fgdn) {
+         LLAMA_LOG_INFO("%s: resolving fused Gated Delta Net support:\n", func);
+-        resolve(llm_fused_op_gdn_ar_probe, cparams.fused_gdn_ar);
+-        resolve(llm_fused_op_gdn_ch_probe, cparams.fused_gdn_ch);
++        if (getenv("GGML_FORCE_FGDN")) {
++            // experiment: keep the fused GDN op even when some layers live on another
++            // device; the backend scheduler copies state/inputs across PCIe per token
++            cparams.fused_gdn_ar = true;
++            cparams.fused_gdn_ch = true;
++        } else {
++            resolve(llm_fused_op_gdn_ar_probe, cparams.fused_gdn_ar);
++            resolve(llm_fused_op_gdn_ch_probe, cparams.fused_gdn_ch);
++        }
+         cparams.auto_fgdn = false;
+     }
+ 

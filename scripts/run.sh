@@ -81,6 +81,10 @@ if has_flag "${HELP}" "-ngl"; then ARGS+=(-ngl "${GPU_LAYERS:-99}"); fi
 if has_flag "${HELP}" "-fa"; then ARGS+=(-fa on); fi
 if has_flag "${HELP}" "--jinja"; then ARGS+=(--jinja); fi
 if has_flag "${HELP}" "--metrics"; then ARGS+=(--metrics); fi
+if [[ -n "${EXTRA_SERVER_ARGS:-}" ]]; then
+    # shellcheck disable=SC2206 # word splitting is the point: extra raw server flags
+    ARGS+=(${EXTRA_SERVER_ARGS})
+fi
 
 if [[ "${EXPOSE_NETWORK:-0}" == 1 ]]; then
     warn "network exposure enabled: ${HOST}:${PORT}"
