@@ -44,6 +44,7 @@ qwen36-27b-q2-dflash
 qwen38-27b-iq3
 qwen38-27b-ud-q3
 qwen38-27b-ad-iq3
+qwen38-27b-gsq-rco-iq3
 qwen3.6-35b-a3b
 qwen3.5-27b
 ```
@@ -134,6 +135,23 @@ A targeted AD-IQ3_S speed matrix used one cold deterministic 512-token run per c
 MTP was slower despite 94.2% draft acceptance. No candidate reached 20 tok/s; `f16/f16` remained fastest, while `q8_0/q8_0` saved about 1.64 GiB for a 1.6% generation penalty. The winning configuration produced 16.08 tok/s on UD-Q3_K_XL. See `results/qwen38-27b-ad-speed-matrix.json` and `results/qwen38-27b-ud-f16-confirmation.json`.
 
 A single Terminal-Bench 2.1 `cancel-async-tasks` smoke trial gave UD-Q3_K_XL a valid 0.0 after it implemented a synchronous function instead of the required async API. The first attempt was invalid because the verifier crashed under QEMU, and the AD-IQ3_S trial was interrupted before completion. This is not a paired Terminal-Bench comparison; the preserved summary is `results/qwen38-27b-terminal-bench-smoke.json`.
+
+## 131k context decode: Ternary Bonsai PQ2_0 vs GSQ-RCO IQ3_S
+
+Two 27B-class GGUFs were measured at a configured 131,072-token context with the `f16/f16` KV cache, full Metal offload, `1024/1024` batch/ubatch, temperature 0, and seed 42. `scripts/benchmark.sh` supplied the fixed prompt from `config/prompts/benchmark.txt` (80 prompt tokens) and 512 generated tokens, with one warmup plus two measured runs after ten minutes without GPU load.
+
+| Model | Quant | File | Decode, idle | Decode, after sustained load | Decode at 116.6k depth | Prefill at 116.6k depth | Idle RSS |
+|---|---|---:|---:|---:|---:|---:|---:|
+| ISTA-DASLab `Qwen3.8-27B-GSQ-RCO-IQ3_S` | 3.50 bpw mixed | 11.77 GB | **15.92 tok/s** | 10.02 tok/s | 5.43 tok/s | 64.9 tok/s | 19.29 GiB |
+| prism-ml `Ternary-Bonsai-2-27B-PQ2_0` | 2.13 bpw ternary | 7.21 GB | **22.96 tok/s** | 13.86 tok/s | 6.86 tok/s | 64.5 tok/s | 15.02 GiB |
+
+The GSQ-RCO file is standard GGUF and loads unmodified in the pinned upstream build, so the `qwen38-27b-gsq-rco-iq3` profile needs no local override; `PQ2_0` only runs on the PrismML fork, which `config/local/ternary-bonsai-2-27b-pq2.env` selects.
+
+Idle decode at 131,072 context is 1.44x faster on Bonsai PQ2_0 than on GSQ-RCO IQ3_S, and 1.38x faster after sustained load. The gap narrows to 1.26x at 116,621 tokens of real prompt depth, where attention over the KV cache dominates the per-token cost and both models fall to 30-34% of their shallow-context speed. Prompt processing is effectively identical at that depth: 64.9 versus 64.5 tok/s. A replicate idle session for GSQ-RCO IQ3_S measured 16.09 tok/s (16.57 and 15.62), so its idle result reproduces within about 1%.
+
+Decode throughput on this laptop depends strongly on how long the GPU has been loaded. Within one 11-minute Bonsai session holding the same binary, model, context, and KV cache, `benchmark.sh` measured 19.37 tok/s at a warm start, 15.99 and 16.21 tok/s immediately after a 3.7-minute 32,928-token prefill, and 23.70 tok/s after five idle minutes. The sustained-load columns above were sampled right after a 30-minute prefill, so they are lower bounds for a cool machine rather than steady-state ratings. The earlier 2026-09-18 session recorded 14.91 tok/s for PQ2_0 at 131,072 context with the same fork commit, which falls inside today's observed 10-24 tok/s range.
+
+The publisher lists 28.1 tok/s TG128 for PQ2_0 on an M5 Pro laptop, measured with `llama-bench` at depth 0; this workbench's server benchmark holds a 131,072-token KV allocation and a full chat template, so the two figures are not directly comparable. The machine-readable record, including each file's SHA-256, the pinned runtime commits, every source file, and the thermal series, is `results/131k-decode-comparison.json`.
 
 ## Ornith 1.5 35B APEX Compact
 
