@@ -5,11 +5,13 @@ set -Eeuo pipefail
 COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${COMMON_DIR}/../.." && pwd)"
 CONFIG_FILE="${CONFIG_FILE:-${PROJECT_DIR}/config/default.env}"
+REQUESTED_SKIP_PREFLIGHT="${SKIP_PREFLIGHT:-}"
 
 if [[ -f "${CONFIG_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${CONFIG_FILE}"
 fi
+[[ -z "${REQUESTED_SKIP_PREFLIGHT}" ]] || SKIP_PREFLIGHT="${REQUESTED_SKIP_PREFLIGHT}"
 
 RESULTS_DIR="${RESULTS_DIR:-results}"
 if [[ "${RESULTS_DIR}" != /* ]]; then
@@ -21,7 +23,13 @@ is_macos() {
 }
 
 cpu_threads() {
-    if is_macos; then sysctl -n hw.ncpu; else nproc; fi
+    if is_macos; then
+        local count
+        count="$(sysctl -n hw.ncpu 2>/dev/null || true)"
+        [[ "${count}" =~ ^[0-9]+$ && "${count}" -gt 0 ]] && printf '%s\n' "${count}" || printf '%s\n' 8
+    else
+        nproc
+    fi
 }
 
 runtime_threads() {
@@ -29,8 +37,12 @@ runtime_threads() {
         local level
         for level in 0 1 2; do
             if [[ "$(sysctl -n "hw.perflevel${level}.name" 2>/dev/null || true)" == Performance ]]; then
-                sysctl -n "hw.perflevel${level}.physicalcpu"
-                return
+                local count
+                count="$(sysctl -n "hw.perflevel${level}.physicalcpu" 2>/dev/null || true)"
+                if [[ "${count}" =~ ^[0-9]+$ && "${count}" -gt 0 ]]; then
+                    printf '%s\n' "${count}"
+                    return
+                fi
             fi
         done
         cpu_threads

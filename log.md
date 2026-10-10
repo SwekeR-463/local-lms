@@ -775,6 +775,9 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Reduced the tracked Pi example and the local Pi configuration to Ornith Compact and Qwen3.8 UD-Q3_K_XL Dynamic V3.0, each with a 16,384-token output limit.
 
 - `2026-08-28 21:32:40 IST` — preflight completed; report saved at results/preflight-20260828-213240.txt
+- `2026-09-08 14:47:54 IST` — ornith15-35b-apex-compact: server started with PID 56229; log results/server-20260908-144753.log
+- `2026-09-08 14:48:05 IST` — ornith15-35b-apex-compact: server started with PID 56409; log results/server-20260908-144804.log
+- `2026-09-08 14:48:19 IST` — ornith15-35b-apex-compact: server started with PID 56573; log results/server-20260908-144818.log
 
 - `2026-09-18 10:40:02 IST` — ternary-bonsai-2-27b: server started with PID 113898; log results/server-20260918-104001.log
 
@@ -797,6 +800,14 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-09-18 14:27:17 IST` — ternary-bonsai-2-27b: recorded screen video of the model (PQ2_0, 47/65 layers, GGML_FORCE_FGDN) running a ZCode-style session analyzing /home/sweker/work: live find/du (43 projects, 96G), then streamed reasoning + full 8-line filesystem analysis via OpenAI API on Xvfb+kitty captured with ffmpeg x11grab. Deliverable: results/ternary-bonsai-27b-fs-analysis.mp4 (384 s, 1280x800@10fps, h264, 2.4 MB); verified frames: intro, real du output, streaming analysis, complete final answer.
 
 - `2026-09-18 15:36:57 IST` — ternary-bonsai-2-27b: recorded screen video of the model running inside the ZCode app (llama-server WebUI in the in-app browser pane): typed the work/ analysis request (company dir renamed to acme-corp at user request), live prompt-processing stats and streamed reasoning + final 8-line analysis (715 tok, 1.20 t/s). Captured via in-app browser tab recording (6x90s webm segments chained, stitched to mp4, 8.4 min). Old terminal take showing that name deleted; intermediate webms cleaned. Deliverable: results/ternary-bonsai-27b-zcode-chat.mp4.
+- `2026-09-18 17:01:26 IST` — ternary-bonsai-2-27b: model resolver selected Ternary-Bonsai-2-27B-PQ2_0.gguf (7206168928 bytes)
+- `2026-09-18 17:01:34 IST` — preflight completed; report saved at results/preflight-20260918-170133.txt
+- `2026-09-18 17:01:35 IST` — ternary-bonsai-2-27b: server started with PID 12287; log results/server-20260918-170134.log
+- `2026-09-18 17:02:18 IST` — preflight completed; report saved at results/preflight-20260918-170217.txt
+- `2026-09-18 17:04:53 IST` — preflight completed; report saved at results/preflight-20260918-170452.txt
+- `2026-09-18 17:07:27 IST` — preflight completed; report saved at results/preflight-20260918-170726.txt
+- `2026-09-18 17:09:02 IST` — preflight completed; report saved at results/preflight-20260918-170902.txt
+- `2026-09-18 17:09:45 IST` — preflight completed; report saved at results/preflight-20260918-170945.txt
 
 - `2026-09-19 18:30:43 IST` — models cleanup at user request: deleted Ternary-Bonsai-2-27B-PQ2_0.gguf and PTQ1_0.gguf (~13.1 GB freed, disk 225G->213G used); llama-server stopped first (was holding PQ2_0 open). KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf (13 GB, pre-existing, default kat-coder profile) left in place pending user decision. Re-download via scripts/download-model.sh <model-id>.
 
