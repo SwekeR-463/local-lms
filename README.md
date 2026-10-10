@@ -19,6 +19,14 @@ scripts/stop.sh
 
 Omit the model ID to use `DEFAULT_MODEL` from `config/default.env`.
 
+Run Codex against a local model with automatic server cleanup:
+
+```bash
+scripts/codex-local.sh ornith15-35b-apex-compact
+```
+
+The wrapper uses port 8001 by default; set `CODEX_LOCAL_PORT` to change it.
+
 ## Included profiles
 
 ```text

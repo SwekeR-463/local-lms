@@ -8,6 +8,8 @@ source "${SCRIPT_DIR}/lib/common.sh"
 MODEL_ARG=""
 if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
 load_model_profile "${MODEL_ARG}"
+PORT="${CODEX_LOCAL_PORT:-${PORT}}"
+SKIP_PREFLIGHT="${SKIP_PREFLIGHT:-0}"
 
 FOREGROUND=0
 while (($#)); do

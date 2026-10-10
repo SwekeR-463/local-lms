@@ -1,0 +1,51 @@
+{
+  "model_id": "ternary-bonsai-2-27b-pq2",
+  "model_name": "Ternary Bonsai 2 27B PQ2_0",
+  "repository": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+  "model_file": "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+  "model_bytes": 7206168928,
+  "model_sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1",
+  "runtime": {
+    "repository": "https://github.com/PrismML-Eng/llama.cpp.git",
+    "commit": "1a07bfa5f4144274c8f1c9963821dd9d9a51854b",
+    "backend": "Metal"
+  },
+  "hardware": "Apple M5 Pro, 16-core GPU, 48 GiB unified memory",
+  "cache_type_k": "f16",
+  "cache_type_v": "f16",
+  "gpu_layers": 99,
+  "benchmark": {
+    "warmup_runs_per_context": 1,
+    "measured_runs_per_context": 2,
+    "completion_tokens_per_run": 512,
+    "seed": 42
+  },
+  "contexts": [
+    {
+      "context": 131072,
+      "idle_rss_kb": 15782656,
+      "generation_tokens_per_second": [
+        14.90409376080802,
+        14.907347335562552
+      ],
+      "mean_generation_tokens_per_second": 14.905720548185286,
+      "source_files": [
+        "results/benchmark-ternary-bonsai-2-27b-20260918-170402.json",
+        "results/benchmark-ternary-bonsai-2-27b-20260918-170438.json"
+      ]
+    },
+    {
+      "context": 262144,
+      "idle_rss_kb": 24080672,
+      "generation_tokens_per_second": [
+        15.388108575603194,
+        15.130274625439839
+      ],
+      "mean_generation_tokens_per_second": 15.259191600521516,
+      "source_files": [
+        "results/benchmark-ternary-bonsai-2-27b-20260918-170630.json",
+        "results/benchmark-ternary-bonsai-2-27b-20260918-170705.json"
+      ]
+    }
+  ]
+}
