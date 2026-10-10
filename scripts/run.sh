@@ -69,6 +69,9 @@ if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
     [[ -f "${DRAFT_MODEL}" ]] || die "draft model does not exist: ${DRAFT_MODEL}"
     add_flag_value "--model-draft" "${DRAFT_MODEL}"
 fi
+if MMPROJ="$(resolve_mmproj_path)"; then
+    add_flag_value "--mmproj" "${MMPROJ}"
+fi
 if [[ -n "${SPEC_TYPE:-}" ]]; then
     add_flag_value "--spec-type" "${SPEC_TYPE}"
     add_flag_value "--spec-draft-n-max" "${SPEC_DRAFT_N_MAX:-1}"
@@ -99,6 +102,7 @@ LOG_FILE="${RESULTS_DIR}/server-$(timestamp).log"
 log "Launching ${SERVER}"
 log "Model: ${MODEL_NAME:-${MODEL_ID}} (${MODEL})"
 log "Context: ${CTX_SIZE:-${PREFERRED_CONTEXT}}, K/V: ${CACHE_TYPE_K:-q8_0}/${CACHE_TYPE_V:-$(default_cache_v)}"
+[[ -z "${MMPROJ:-}" ]] || log "Multimodal projector: ${MMPROJ}"
 log "Log: ${LOG_FILE}"
 
 if ((FOREGROUND)); then

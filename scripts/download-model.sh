@@ -90,6 +90,11 @@ if ((RESOLVE_ONLY)); then
         DRAFT_REMOTE_SIZE="$(curl --fail --silent --show-error --location --head "${DRAFT_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
         log "Draft model: ${DRAFT_MODEL_FILE} (${DRAFT_REMOTE_SIZE} bytes)"
     fi
+    if [[ -n "${MODEL_MMPROJ_FILE:-}" ]]; then
+        MMPROJ_URL="https://huggingface.co/${MODEL_REPO}/resolve/main/${MODEL_MMPROJ_FILE}?download=true"
+        MMPROJ_REMOTE_SIZE="$(curl --fail --silent --show-error --location --head "${MMPROJ_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
+        log "Multimodal projector: ${MODEL_MMPROJ_FILE} (${MMPROJ_REMOTE_SIZE} bytes)"
+    fi
     exit 0
 fi
 
@@ -125,6 +130,40 @@ jq -n \
 
 log "Model ready: $(human_bytes "${MODEL_BYTES}")"
 record_log "${MODEL_ID}: model resolver selected ${MODEL_FILE_RESOLVED} (${MODEL_BYTES} bytes)"
+
+if [[ -n "${MODEL_MMPROJ_FILE:-}" ]]; then
+    contains_file "${MODEL_MMPROJ_FILE}" || die "MODEL_MMPROJ_FILE is not present in ${MODEL_REPO}: ${MODEL_MMPROJ_FILE}"
+    MMPROJ_DIR="$(project_path "${MODEL_MMPROJ_DIR:-${MODEL_DIR:-models}}")"
+    mkdir -p "${MMPROJ_DIR}"
+    MMPROJ_PATH="${MMPROJ_DIR}/$(basename "${MODEL_MMPROJ_FILE}")"
+    MMPROJ_URL="https://huggingface.co/${MODEL_REPO}/resolve/main/${MODEL_MMPROJ_FILE}?download=true"
+    if [[ -f "${MMPROJ_PATH}" && -s "${MMPROJ_PATH}" ]]; then
+        log "mmproj already exists; skipping download"
+    else
+        curl --fail --location --continue-at - --output "${MMPROJ_PATH}.part" "${MMPROJ_URL}"
+        mv "${MMPROJ_PATH}.part" "${MMPROJ_PATH}"
+    fi
+    [[ -s "${MMPROJ_PATH}" ]] || die "downloaded mmproj is empty: ${MMPROJ_PATH}"
+    MMPROJ_BYTES="$(file_size "${MMPROJ_PATH}")"
+    MMPROJ_SHA256="$(sha256_file "${MMPROJ_PATH}")"
+    MMPROJ_SIZE="$(jq -r --arg file "${MODEL_MMPROJ_FILE}" '.siblings[] | select(.rfilename == $file) | (.size // 0)' <<<"${MODEL_JSON}")"
+    MMPROJ_SHA256_HF="$(jq -r --arg file "${MODEL_MMPROJ_FILE}" '.siblings[] | select(.rfilename == $file) | (.lfs.sha256 // .sha // "")' <<<"${MODEL_JSON}")"
+    [[ "${MMPROJ_SIZE}" == "0" || -z "${MMPROJ_SIZE}" ]] && MMPROJ_SIZE="$(curl --fail --silent --show-error --location --head "${MMPROJ_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
+    jq -n \
+        --arg id "${MODEL_ID}" \
+        --arg repo "${MODEL_REPO}" \
+        --arg file "${MODEL_MMPROJ_FILE}" \
+        --arg path "${MMPROJ_PATH}" \
+        --arg bytes "${MMPROJ_BYTES}" \
+        --arg advertised_bytes "${MMPROJ_SIZE}" \
+        --arg sha256 "${MMPROJ_SHA256}" \
+        --arg advertised_sha256 "${MMPROJ_SHA256_HF}" \
+        --arg downloaded_at "$(iso_timestamp)" \
+        '{model_id:$id,role:"mmproj",repository:$repo,filename:$file,path:$path,bytes:($bytes|tonumber),advertised_bytes:($advertised_bytes|tonumber),sha256:$sha256,advertised_sha256:$advertised_sha256,downloaded_at:$downloaded_at}' \
+        >"${RESULTS_DIR}/model-${MODEL_ID}-mmproj.json"
+    log "mmproj ready: $(human_bytes "${MMPROJ_BYTES}")"
+    record_log "${MODEL_ID}: mmproj ready: ${MODEL_MMPROJ_FILE} (${MMPROJ_BYTES} bytes)"
+fi
 
 if [[ -n "${DRAFT_MODEL_FILE:-}" ]]; then
     [[ -n "${DRAFT_MODEL_REPO:-}" ]] || die "DRAFT_MODEL_REPO is required with DRAFT_MODEL_FILE"

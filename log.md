@@ -906,3 +906,37 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Near-window depth: a 305,000-byte prompt (116,621 tokens, 89% of the window) plus 128 generated tokens measured GSQ-RCO IQ3_S at 5.43 tok/s decode and 64.9 tok/s prefill (3 runs, one with a reused prefix) and Bonsai PQ2_0 at 6.86 tok/s and 64.5 tok/s (2 runs, one reused). Each cold run spent about 30 minutes in prefill.
 - Machine-state dependence quantified on Bonsai PQ2_0 in a single session: 19.37 tok/s at a warm start, 15.99/16.21 immediately after a 3.7-minute 32,928-token prefill, 23.70 after five idle minutes; sessions sampled right after a 30-minute prefill measured 13.96/13.76 and 14.47. Same binary, model, context, and KV cache throughout, so Mac decode numbers from this workbench must state the preceding GPU load.
 - Results: `results/131k-decode-comparison.json` (tracked) plus raw single-request `results/deep131k-*.json`; the per-run `results/benchmark-*.json` files stay untracked.
+
+- `2026-10-10 18:17:16 IST` — qwen38-27b-gsq-rco-iq3: model resolver selected Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf (11771546784 bytes)
+
+- `2026-10-10 18:18:40 IST` — qwen38-27b-gsq-rco-iq3: mmproj ready: mmproj-Qwen3.8-27B-BF16.gguf (931146528 bytes)
+
+- `2026-10-10 18:18:44 IST` — ternary-bonsai-2-27b-pq2: model resolver selected Ternary-Bonsai-2-27B-PQ2_0.gguf (7206168928 bytes)
+
+- `2026-10-10 18:19:42 IST` — ternary-bonsai-2-27b-pq2: mmproj ready: Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf (629246976 bytes)
+
+- `2026-10-10 18:22:52 IST` — preflight completed; report saved at results/preflight-20261010-182251.txt
+
+- `2026-10-10 18:22:53 IST` — ternary-bonsai-2-27b-pq2: server started with PID 21276; log results/server-20261010-182252.log
+
+- `2026-10-10 18:24:45 IST` — stopped project server PID 21276
+
+- `2026-10-10 18:34:51 IST` — preflight completed; report saved at results/preflight-20261010-183451.txt
+
+- `2026-10-10 18:34:52 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 24639; log results/server-20261010-183451.log
+
+- `2026-10-10 18:37:35 IST` — stopped project server PID 24639
+
+## Prescribed sampling and vision projectors — 2026-10-10
+
+- `scripts/benchmark.sh` gained `--sampling profile`, which sends the profile's temperature, top-p, top-k, min-p, presence/repetition penalties, and chat-template kwargs instead of the fixed greedy request; every result JSON now records `sampling_mode` and the exact `sampling` block. The default stays greedy so earlier numbers remain comparable.
+- The Bonsai PQ2_0 profile had `min_p=0.0`, which overrode llama.cpp's 0.05 default that the model card prescribes; now `0.05`.
+- Added `MODEL_MMPROJ_FILE` support: `download-model.sh` fetches the projector next to the GGUF and records `results/model-<id>-mmproj.json`, `preflight.sh` reports it, and `run.sh` passes `--mmproj` when the build supports it. Downloaded `Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` (629,246,976 bytes; SHA-256 `6807ede61d570bb86ba34b756a0fa109edc33668604de867c6ea6d8f1d631903`) and `mmproj-Qwen3.8-27B-BF16.gguf` (931,146,528 bytes; SHA-256 `13cb7bebccbd04afc8f4090cb949ecf8937cdf7377c5799b1a0c594e7c0d3e16`).
+- Prescribed sampling at 131,072 context with the projectors loaded (2 runs each, idle protocol): GSQ-RCO IQ3_S 15.92 tok/s, Bonsai PQ2_0 25.76 tok/s — matching the greedy results within session drift, so sampler choice does not move throughput. Idle RSS with the projector is 20.28 GiB and 15.72 GiB.
+- Vision verified end to end on both servers: a 512x512 PNG with four quadrants split by a white cross was described correctly (top-left red, top-right blue, bottom-left green, bottom-right yellow) in `results/vision-test-*.json`.
+
+- `2026-10-10 18:38:15 IST` — preflight completed; report saved at results/preflight-20261010-183815.txt
+
+- `2026-10-10 18:38:20 IST` — ternary-bonsai-2-27b-pq2: model resolver selected Ternary-Bonsai-2-27B-PQ2_0.gguf (7206168928 bytes)
+
+- `2026-10-10 18:38:21 IST` — ternary-bonsai-2-27b-pq2: mmproj ready: Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf (629246976 bytes)

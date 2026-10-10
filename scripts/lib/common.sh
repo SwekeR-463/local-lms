@@ -186,6 +186,16 @@ resolve_server_bin() {
     die "could not locate llama-server; run scripts/build.sh or set SERVER_BIN"
 }
 
+resolve_mmproj_path() {
+    local mmproj_file="${MODEL_MMPROJ_FILE:-}"
+    [[ -n "${mmproj_file}" ]] || return 1
+    local mmproj_dir="${MODEL_MMPROJ_DIR:-${MODEL_DIR:-${PROJECT_DIR}/models}}"
+    [[ "${mmproj_dir}" = /* ]] || mmproj_dir="${PROJECT_DIR}/${mmproj_dir}"
+    local candidate="${mmproj_dir}/$(basename "${mmproj_file}")"
+    [[ -f "${candidate}" ]] || die "mmproj file does not exist: ${candidate}; run scripts/download-model.sh"
+    printf '%s\n' "${candidate}"
+}
+
 resolve_model_path() {
     local model_path="${MODEL_PATH:-}"
     if [[ -n "${model_path}" ]]; then

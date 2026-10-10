@@ -20,7 +20,9 @@
     "idle": "10 minutes without GPU load, then 1 warmup + 2 measured scripts/benchmark.sh runs (80-token prompt, 512 generated tokens)",
     "loaded": "identical benchmark runs without an idle period, after sustained prefill load",
     "near_window": "one request with a 305,000-byte prompt (116,621 tokens, 89% of the window) and 128 generated tokens; the 30-minute prefill leaves the machine heat-soaked",
-    "note": "decode is the timings.predicted_per_second value returned by llama-server; RSS counts mmap-backed pages and is not private physical memory"
+    "note": "decode is the timings.predicted_per_second value returned by llama-server; RSS counts mmap-backed pages and is not private physical memory",
+    "prescribed_sampling": "scripts/benchmark.sh MODEL --sampling profile sends the profile's temperature/top_p/top_k/min_p/penalties and chat-template kwargs; the default greedy mode is unchanged",
+    "multimodal": "run.sh passes --mmproj when MODEL_MMPROJ_FILE is set; the projector is loaded by the server and only used for image input"
   },
   "models": [
     {
@@ -35,7 +37,6 @@
         "commit": "11cd98842874cc1b87ac274bd2d5cceb38102bb2",
         "backend": "Metal"
       },
-      "idle_rss_kb_after_load": 20230832,
       "decode_131k_idle": {
         "warmup": {
           "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-175958.json",
@@ -145,7 +146,48 @@
           }
         ],
         "mean_generation_tokens_per_second": 5.426
-      }
+      },
+      "multimodal": {
+        "mmproj_file": "mmproj-Qwen3.8-27B-BF16.gguf",
+        "mmproj_bytes": 931146528,
+        "mmproj_sha256": "13cb7bebccbd04afc8f4090cb949ecf8937cdf7377c5799b1a0c594e7c0d3e16",
+        "idle_rss_kb_after_load_with_mmproj": 21262784,
+        "vision_check": {
+          "image": "512x512 PNG, four quadrants (top-left red, top-right blue, bottom-left green, bottom-right yellow) split by a white cross",
+          "prompt_tokens": 342,
+          "completion_tokens": 203,
+          "answer_summary": "Top-left: Red; Top-right: Blue; Bottom-left: Green; Bottom-right: Yellow",
+          "source_file": "results/vision-test-qwen38-27b-gsq-rco-iq3.json"
+        }
+      },
+      "decode_131k_prescribed_sampling": {
+        "description": "same 131k idle protocol, but the request carries the sampling parameters the model prescribes (from config/models/<id>.env, which mirrors the GGUF general.sampling.* metadata)",
+        "sampling": {
+          "temperature": 1.0,
+          "top_p": 0.95,
+          "top_k": 20,
+          "min_p": 0.0,
+          "presence_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "chat_template_kwargs": {
+            "reasoning_effort": "xhigh"
+          }
+        },
+        "warmup_generation_tokens_per_second": 17.069,
+        "generation_tokens_per_second": [
+          16.549,
+          15.281
+        ],
+        "mean_generation_tokens_per_second": 15.915,
+        "same_session_greedy_generation_tokens_per_second": 13.631,
+        "source_files": [
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183526.json",
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183557.json",
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183631.json",
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183709.json"
+        ]
+      },
+      "idle_rss_kb_after_load_text_only": 20230832
     },
     {
       "model_id": "ternary-bonsai-2-27b-pq2",
@@ -159,7 +201,6 @@
         "commit": "1a07bfa5f4144274c8f1c9963821dd9d9a51854b",
         "backend": "Metal"
       },
-      "idle_rss_kb_after_load": 15749568,
       "decode_131k_idle": {
         "warmup": {
           "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-174822.json",
@@ -235,7 +276,48 @@
           }
         ],
         "mean_generation_tokens_per_second": 6.855
-      }
+      },
+      "multimodal": {
+        "mmproj_file": "Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+        "mmproj_bytes": 629246976,
+        "mmproj_sha256": "6807ede61d570bb86ba34b756a0fa109edc33668604de867c6ea6d8f1d631903",
+        "idle_rss_kb_after_load_with_mmproj": 16481776,
+        "vision_check": {
+          "image": "512x512 PNG, four quadrants (top-left red, top-right blue, bottom-left green, bottom-right yellow) split by a white cross",
+          "prompt_tokens": 342,
+          "completion_tokens": 89,
+          "answer_summary": "Top-left: Red; Top-right: Blue; Bottom-left: Green; Bottom-right: Yellow",
+          "source_file": "results/vision-test-ternary-bonsai-2-27b-pq2.json"
+        }
+      },
+      "decode_131k_prescribed_sampling": {
+        "description": "same 131k idle protocol, but the request carries the sampling parameters the model prescribes (from config/models/<id>.env, which mirrors the GGUF general.sampling.* metadata)",
+        "sampling": {
+          "temperature": 1.0,
+          "top_p": 0.95,
+          "top_k": 20,
+          "min_p": 0.05,
+          "presence_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "chat_template_kwargs": {
+            "reasoning_effort": "xhigh"
+          }
+        },
+        "warmup_generation_tokens_per_second": 25.984,
+        "generation_tokens_per_second": [
+          25.894,
+          25.616
+        ],
+        "mean_generation_tokens_per_second": 25.755,
+        "same_session_greedy_generation_tokens_per_second": 24.046,
+        "source_files": [
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182323.json",
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182343.json",
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182403.json",
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182424.json"
+        ]
+      },
+      "idle_rss_kb_after_load_text_only": 15749568
     }
   ],
   "thermal_sensitivity": {

@@ -67,6 +67,14 @@ MODEL_FILE="exact-file.gguf"
 
 Then every command accepts `my-model` as its first argument. `MODEL_PATH` can point at an existing local GGUF instead.
 
+Set `MODEL_MMPROJ_FILE` to also fetch and serve a vision projector:
+
+```bash
+MODEL_MMPROJ_FILE="mmproj-my-model.gguf"
+```
+
+`scripts/download-model.sh` stores it next to the main GGUF, `scripts/preflight.sh` reports it, and `scripts/run.sh` passes `--mmproj` whenever the server build supports the flag.
+
 ## Configuration order
 
 Later files override earlier files:
@@ -80,7 +88,9 @@ Models are stored under ignored `models/`. Generated runs are stored under `resu
 
 ## Benchmark output
 
-`benchmark.sh` sends the fixed prompt in `config/prompts/benchmark.txt` to a running server and writes JSON containing the model/profile, quant file, context, hardware, memory, prompt throughput, generation throughput, speculative acceptance, and response. This is a throughput smoke benchmark, not a quality leaderboard.
+`benchmark.sh` sends the fixed prompt in `config/prompts/benchmark.txt` to a running server and writes JSON containing the model/profile, quant file, context, hardware, memory, sampling, prompt throughput, generation throughput, speculative acceptance, and response. This is a throughput smoke benchmark, not a quality leaderboard.
+
+The request is greedy (temperature 0) by default so results stay comparable across sessions. `scripts/benchmark.sh MODEL --sampling profile` instead sends the sampling parameters declared by the profile: temperature, top-p, top-k, min-p, presence and repetition penalties, plus chat-template kwargs such as reasoning effort. Every saved JSON records `sampling_mode` and the exact `sampling` block it used.
 
 `benchmark-data/short-python/` contains six deterministic coding tasks with held-out evaluators. With one model server running, use `scripts/benchmark-code.sh MODEL`; raw answers, extracted candidates, evaluator logs, and a model-tagged JSON summary are saved under `results/`. `benchmark-data/agent-51/manifest.json` pins the separate custom 20-task SWE-bench Verified, 25-task Terminal-Bench 2.1, and six-task MLE-bench evaluation subset.
 
@@ -152,6 +162,10 @@ Idle decode at 131,072 context is 1.44x faster on Bonsai PQ2_0 than on GSQ-RCO I
 Decode throughput on this laptop depends strongly on how long the GPU has been loaded. Within one 11-minute Bonsai session holding the same binary, model, context, and KV cache, `benchmark.sh` measured 19.37 tok/s at a warm start, 15.99 and 16.21 tok/s immediately after a 3.7-minute 32,928-token prefill, and 23.70 tok/s after five idle minutes. The sustained-load columns above were sampled right after a 30-minute prefill, so they are lower bounds for a cool machine rather than steady-state ratings. The earlier 2026-09-18 session recorded 14.91 tok/s for PQ2_0 at 131,072 context with the same fork commit, which falls inside today's observed 10-24 tok/s range.
 
 The publisher lists 28.1 tok/s TG128 for PQ2_0 on an M5 Pro laptop, measured with `llama-bench` at depth 0; this workbench's server benchmark holds a 131,072-token KV allocation and a full chat template, so the two figures are not directly comparable. The machine-readable record, including each file's SHA-256, the pinned runtime commits, every source file, and the thermal series, is `results/131k-decode-comparison.json`.
+
+Both profiles now carry their vision projector (`MODEL_MMPROJ_FILE`): `Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` (600 MiB) and `mmproj-Qwen3.8-27B-BF16.gguf` (888 MiB). With the projector loaded the servers idle at 15.72 GiB and 20.28 GiB RSS, and each one named all four quadrants of a red/blue/green/yellow test image correctly (`results/vision-test-*.json`).
+
+Prescribed sampling does not change throughput. Repeating the idle protocol with `scripts/benchmark.sh MODEL --sampling profile` (temperature 1.0, top-p 0.95, top-k 20, min-p 0.05 for Bonsai and 0.0 for the GSQ-RCO file, xhigh reasoning) measured 15.92 tok/s for GSQ-RCO IQ3_S and 25.76 tok/s for Bonsai PQ2_0, matching the greedy table above within the session-to-session spread. Runs issued at the end of a session are 10-20% slower than runs at the start regardless of sampler, which is the load sensitivity described above; the Bonsai profile also gained the `min_p=0.05` the card prescribes, which its earlier `min_p=0.0` was overriding.
 
 ## Ornith 1.5 35B APEX Compact
 
