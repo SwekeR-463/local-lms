@@ -956,3 +956,39 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Consequence: at shallow depth GSQ-RCO is capped by its own weights at 307/11.77 = ~26 tok/s even at 100% of peak bandwidth, so 25-30 is not reachable by bandwidth tuning alone; Bonsai already sits at 25.76 in the prescribed-sampling idle protocol. At a genuinely filled window the levers below sum to roughly 2-3x over today's 5.43/6.86, i.e. a realistic band near 12-20 tok/s, with 25-30 only if speculative decoding accepts well on the actual workload.
 - Levers found, all without downloads: (1) KV quantization at 131k — `q8_0`/`q4_0`/`iq4_nl` are available in both working builds today and cut deep-context KV traffic from 8.59 GB to ~2.4-3.4 GB per token; the fork's `turbo2/turbo3/turbo4` (6.4x/4.9x/3.8x vs f16 per `docs/KV-cache-quantization.md`) would cut it to 1.3-2.3 GB, and `.cache/llama-cpp-turboquant/src` does contain `src/models/qwen35.cpp`, so that build may load these models without a rebase — unverified, it needs a load test. (2) Speculative decoding with no draft model: the pinned build 11cd988 offers `ngram-simple`, `ngram-map-k`, `ngram-map-k4v`, `ngram-mod`, `ngram-cache`, and `run.sh` already wires `SPEC_TYPE` plus the `--spec-ngram-mod-*` knobs; this is the only lever that can exceed the weight-bandwidth roofline because one pass emits several accepted tokens. (3) Thermal/power, which the existing series already shows at 1.4-1.5x: `pmset -g custom` reports AC `powermode 0` (automatic, not Low Power Mode) and battery `powermode 1`, so AC plus a cool machine is free headroom. (4) `-fa on` is already passed when the binary advertises `-fa`, which both working builds do.
 - Nothing above is measured. The first cheap confirmation would be a short-context sweep of KV types plus one `--spec-type ngram-mod` run (~minutes), then a single 131k near-window run per model (~35 minutes of prefill each) only if the cheap step shows the expected traffic and acceptance.
+
+- `2026-10-12 19:48:13 IST` — preflight completed; report saved at results/preflight-20261012-194813.txt
+
+- `2026-10-12 19:48:17 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 17928; log results/server-20261012-194813.log
+
+- `2026-10-12 19:50:46 IST` — stopped project server PID 17928
+
+- `2026-10-12 19:50:52 IST` — preflight completed; report saved at results/preflight-20261012-195051.txt
+
+- `2026-10-12 19:50:54 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 19077; log results/server-20261012-195052.log
+
+- `2026-10-12 19:54:58 IST` — stopped project server PID 19077
+
+- `2026-10-12 19:55:04 IST` — preflight completed; report saved at results/preflight-20261012-195503.txt
+
+- `2026-10-12 19:55:06 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 20220; log results/server-20261012-195504.log
+
+- `2026-10-12 19:56:09 IST` — stopped project server PID 20220
+
+- `2026-10-12 19:57:33 IST` — preflight completed; report saved at results/preflight-20261012-195733.txt
+
+- `2026-10-12 19:57:36 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 21248; log results/server-20261012-195734.log
+
+- `2026-10-12 20:31:47 IST` — stopped project server PID 21248
+
+## GSQ-RCO 131k: measured bandwidth ceiling, ngram speculation, coding suite — 2026-10-12
+
+- Memory bandwidth probe (ad-hoc STREAM-style pthread tool, 128 MiB per thread, best of 3 passes, run with the server stopped): read-only 132.9 / 236.9 / 293.6 / 313.1 GB/s at 4 / 8 / 12 / 15 threads, triad up to 364.8 GB/s. The read path saturates at ~313 GB/s, matching Apple's published 307 GB/s for M5 Pro. This replaces the 2026-10-10 inference of "61% of peak" with a direct measurement.
+- Roofline: the dense GSQ-RCO IQ3_S file is 11.77 GB, so one novel-text decode token requires 11.77 GB of weight reads. Ceiling = 313/11.77 = 26.6 tok/s (26.1 at Apple's spec); 30 tok/s needs 353 GB/s and 40 tok/s needs 471 GB/s. Novel-text 30-40 tok/s is physically impossible on this machine for this file.
+- Baseline re-run (idle protocol, 131k, f16/f16, upstream 11cd988): 16.73 / 16.61 / 16.62 tok/s, reproducing the 2026-10-10 15.92-16.09 result; ~196 GB/s effective, 63% of the measured read ceiling.
+- `--spec-type ngram-mod` (`SPEC_TYPE=ngram-mod scripts/run.sh ...`): first-occurrence text runs 14.94 / 14.56 tok/s (~12% penalty); identical repeated requests warm the ngram cache and hit 44.37 / 53.05 / 68.51 tok/s with 95.6-100% draft acceptance. Multi-token verification passes exceed the weight-bandwidth roofline. Warm rerun outputs drifted from the non-speculative greedy response after the first occurrence.
+- Fresh repetitive prompt (two alternating lines x20, first request, temperature 0): 16.72 tok/s without speculation vs 34.61 tok/s with ngram-mod (99.4% acceptance, 355/357 accepted drafts); outputs byte-identical (SHA1 cb68c0f85dc4). This is the only measured first-request condition at 131k that lands in the 30-40 tok/s band.
+- Coding suite (short-python-v1, one request per task, ngram-mod server at 131k): greedy/low with a 1,024-token cap scored 3/6 (passes merge-intervals, flatten-dict, batch-iterable; three cap truncations); the model's prescribed sampling (temperature 1.0, top-p 0.95, top-k 20, min-p 0, xhigh) with a 4,096-token cap scored 4/6 (passes binary-metrics, flatten-dict, parse-env, batch-iterable; merge-intervals and dependency-order hit the cap and the evaluator saw no complete function). Per-task decode ran at 17 tok/s on the first task and 9-11 tok/s for the rest under sustained load; ngram drafting was sparse on these prompts (three tasks drafted nothing; 58-68% acceptance when it did).
+- Thermal: this machine cannot hold the idle-protocol numbers in a working session. Continuous decode decayed from ~17 to ~10-11 tok/s within minutes here, consistent with the 2026-10-10 series (15.99 vs 23.70 inside one session). The 30-40 tok/s ngram figures are short, cool-machine bursts on repeat-heavy text, not sustainable coding throughput.
+- `scripts/benchmark-code.sh` gained `--sampling profile` (mirrors `benchmark.sh`): it sends the profile's temperature, top-p, top-k, min-p, presence/repetition penalties, and chat-template kwargs and records `sampling_mode`/`sampling` in the summary JSON. The default stays greedy/low for comparability with earlier suite runs.
+- Aggregate (tracked): `results/131k-ngram-speculation-qwen38-27b-gsq-rco-iq3.json`; raw per-request benchmark and suite outputs remain untracked under `results/`.

@@ -92,7 +92,7 @@ Models are stored under ignored `models/`. Generated runs are stored under `resu
 
 The request is greedy (temperature 0) by default so results stay comparable across sessions. `scripts/benchmark.sh MODEL --sampling profile` instead sends the sampling parameters declared by the profile: temperature, top-p, top-k, min-p, presence and repetition penalties, plus chat-template kwargs such as reasoning effort. Every saved JSON records `sampling_mode` and the exact `sampling` block it used.
 
-`benchmark-data/short-python/` contains six deterministic coding tasks with held-out evaluators. With one model server running, use `scripts/benchmark-code.sh MODEL`; raw answers, extracted candidates, evaluator logs, and a model-tagged JSON summary are saved under `results/`. `benchmark-data/agent-51/manifest.json` pins the separate custom 20-task SWE-bench Verified, 25-task Terminal-Bench 2.1, and six-task MLE-bench evaluation subset.
+`benchmark-data/short-python/` contains six deterministic coding tasks with held-out evaluators. With one model server running, use `scripts/benchmark-code.sh MODEL`; raw answers, extracted candidates, evaluator logs, and a model-tagged JSON summary are saved under `results/`. `--sampling profile` switches the suite from its greedy/low defaults to the sampling parameters the profile declares. `benchmark-data/agent-51/manifest.json` pins the separate custom 20-task SWE-bench Verified, 25-task Terminal-Bench 2.1, and six-task MLE-bench evaluation subset.
 
 ## Qwen3.8 27B IQ3
 
@@ -166,6 +166,14 @@ The publisher lists 28.1 tok/s TG128 for PQ2_0 on an M5 Pro laptop, measured wit
 Both profiles now carry their vision projector (`MODEL_MMPROJ_FILE`): `Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` (600 MiB) and `mmproj-Qwen3.8-27B-BF16.gguf` (888 MiB). With the projector loaded the servers idle at 15.72 GiB and 20.28 GiB RSS, and each one named all four quadrants of a red/blue/green/yellow test image correctly (`results/vision-test-*.json`).
 
 Prescribed sampling does not change throughput. Repeating the idle protocol with `scripts/benchmark.sh MODEL --sampling profile` (temperature 1.0, top-p 0.95, top-k 20, min-p 0.05 for Bonsai and 0.0 for the GSQ-RCO file, xhigh reasoning) measured 15.92 tok/s for GSQ-RCO IQ3_S and 25.76 tok/s for Bonsai PQ2_0, matching the greedy table above within the session-to-session spread. Runs issued at the end of a session are 10-20% slower than runs at the start regardless of sampler, which is the load sensitivity described above; the Bonsai profile also gained the `min_p=0.05` the card prescribes, which its earlier `min_p=0.0` was overriding.
+
+### 131k decode ceiling, ngram speculation, and coding throughput
+
+A pthread STREAM probe measured this M5 Pro's read path at 313 GB/s (15 threads; Apple rates the chip at 307 GB/s), so the dense 11.77 GB GSQ-RCO file is capped at ~26 tok/s for novel text no matter the settings; 30-40 tok/s would need 353-471 GB/s. Measured on 2026-10-12: 16.6-16.7 tok/s idle at 131k without speculation (reproducing the 2026-10-10 result) and 14.6 tok/s on first-occurrence text with `--spec-type ngram-mod`.
+
+ngram-mod pays off when output repeats content already in context: draft acceptance rises to 95-100% and one weight read emits several tokens. A fresh repetitive prompt measured 34.61 tok/s versus 16.72 without speculation (byte-identical output), and identical repeated requests reached 44-68 tok/s. Enable with `SPEC_TYPE=ngram-mod scripts/run.sh qwen38-27b-gsq-rco-iq3`; expect roughly a 12% penalty on novel text.
+
+The six-task `short-python-v1` suite ran at 131k on the ngram server: 3/6 with the suite's greedy/low defaults and a 1,024-token cap (three cap truncations), and 4/6 with the prescribed sampling at a 4,096-token cap (two cap truncations). Decode settled at 9-11 tok/s under sustained load after 17 tok/s on the first task, so 30-40 tok/s is not sustained for coding workloads on this machine. The machine-readable record is `results/131k-ngram-speculation-qwen38-27b-gsq-rco-iq3.json`.
 
 ## Ornith 1.5 35B APEX Compact
 
