@@ -10,14 +10,17 @@ if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
 load_model_profile "${MODEL_ARG}"
 
 MODE="short"
-case "${1:-}" in
-    --short|"") MODE=short ;;
-    --accepted) MODE=accepted ;;
-    --preferred) MODE=preferred ;;
-    --quality) MODE=quality ;;
-    -h|--help) printf '%s\n' 'Usage: scripts/validate.sh [MODEL] [--short|--accepted|--preferred|--quality]'; exit 0 ;;
-    *) die "unknown validation mode: $1" ;;
-esac
+while (($#)); do
+    case "$1" in
+        --short) MODE=short ;;
+        --accepted) MODE=accepted ;;
+        --preferred) MODE=preferred ;;
+        --quality) MODE=quality ;;
+        -h|--help) printf '%s\n' 'Usage: scripts/validate.sh [MODEL] [--short|--accepted|--preferred|--quality]'; exit 0 ;;
+        *) die "unknown validation mode: $1" ;;
+    esac
+    shift
+done
 
 require_command curl
 require_command jq
@@ -45,9 +48,9 @@ if ((CONTEXT > 8192)); then
 else
     PROMPT="Validate ${MODEL_NAME:-${MODEL_ID}} server output at approximately ${CONTEXT} tokens. Return a short deterministic acknowledgement."
 fi
-REQUEST="${RESULTS_DIR}/validation-$(timestamp).json"
+REQUEST="$(unique_path "${RESULTS_DIR}/validation-$(timestamp).json")"
 mkdir -p "${RESULTS_DIR}"
-PROMPT_FILE="${RESULTS_DIR}/validation-prompt-$(timestamp).txt"
+PROMPT_FILE="${REQUEST%.json}.txt"
 printf '%s' "${PROMPT}" >"${PROMPT_FILE}"
 jq -n --rawfile prompt "${PROMPT_FILE}" --argjson seed "${SEED:-42}" \
     '{messages:[{role:"user",content:$prompt}],max_tokens:256,temperature:0,seed:$seed}' >"${REQUEST}"

@@ -240,8 +240,27 @@ port_is_free() {
     return 0
 }
 
-json_escape() {
-    sed 's/\\/\\\\/g; s/"/\\"/g'
+wait_ready() {
+    # Poll the server /health endpoint. Optional pid: report dead immediately
+    # so a crashed startup does not burn the whole timeout.
+    local timeout="${1:-90}"
+    local pid="${2:-}"
+    local deadline=$((SECONDS + timeout))
+    while ((SECONDS < deadline)); do
+        if [[ -n "${pid}" ]] && ! kill -0 "${pid}" 2>/dev/null; then return 1; fi
+        if curl --fail --silent "http://${HOST}:${PORT}/health" >/dev/null 2>&1; then return 0; fi
+        sleep 1
+    done
+    return 1
+}
+
+unique_path() {
+    # Timestamps have one-second resolution; never overwrite an existing run file.
+    local path="$1"
+    if [[ ! -e "${path}" ]]; then printf '%s\n' "${path}"; return; fi
+    local n=1
+    while [[ -e "${path}.${n}" ]]; do n=$((n + 1)); done
+    printf '%s\n' "${path}.${n}"
 }
 
 record_log() {

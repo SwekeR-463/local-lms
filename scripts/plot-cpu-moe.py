@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+# Charts the CPU MoE offload sweeps. Input is results/cpu-moe-results.json,
+# a hand-built aggregate (per-context means) over autotune.sh --cpu-moe-sweep
+# output (generation_tokens_per_second etc.), not a file the sweep writes.
+# shortcut: x-axis assumes 0 <= n_cpu_moe <= 40 (divide by 40 below); widen
+# the axis if a sweep ever uses larger values.
+
 import json
 import subprocess
 import sys

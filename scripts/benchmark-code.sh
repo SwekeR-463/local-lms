@@ -25,7 +25,7 @@ SERVER_MODEL="$(curl --fail --silent "http://${HOST}:${PORT}/v1/models" | jq -r 
 SUITE_DIR="${PROJECT_DIR}/benchmark-data/short-python"
 MAX_TOKENS="${BENCHMARK_MAX_TOKENS:-1024}"
 REASONING_EFFORT="${BENCHMARK_REASONING_EFFORT:-low}"
-OUTPUT_DIR="${RESULTS_DIR}/short-python-${MODEL_ID}-$(timestamp)"
+OUTPUT_DIR="$(unique_path "${RESULTS_DIR}/short-python-${MODEL_ID}-$(timestamp)")"
 mkdir -p "${OUTPUT_DIR}"
 OUTCOMES="${OUTPUT_DIR}/tasks.jsonl"
 : >"${OUTCOMES}"
@@ -40,7 +40,7 @@ jq -r '.tasks[].id' "${SUITE_DIR}/manifest.json" | while IFS= read -r task; do
     jq -n --arg model "${MODEL_ID}" --rawfile prompt "${task_dir}/prompt.txt" \
         --arg effort "${REASONING_EFFORT}" --argjson max_tokens "${MAX_TOKENS}" \
         '{model:$model,messages:[{role:"user",content:$prompt}],max_tokens:$max_tokens,temperature:0,seed:42,chat_template_kwargs:{reasoning_effort:$effort}}' >"${request}"
-    curl --fail --silent --show-error -H 'Content-Type: application/json' --data-binary "@${request}" \
+    curl --fail --silent --show-error --max-time "${BENCHMARK_TIMEOUT_SECONDS:-1800}" -H 'Content-Type: application/json' --data-binary "@${request}" \
         "http://${HOST}:${PORT}/v1/chat/completions" >"${response}"
 
     python3 - "${response}" "${candidate}" <<'PY'

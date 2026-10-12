@@ -8,6 +8,8 @@ source "${SCRIPT_DIR}/lib/common.sh"
 MODEL_ARG=""
 if [[ -n "${1:-}" && "${1}" != -* ]]; then MODEL_ARG="$1"; shift; fi
 load_model_profile "${MODEL_ARG}"
+# CODEX_LOCAL_PORT is the codex-local.sh wrapper's knob; a stray value in the
+# environment also overrides PORT for plain run.sh calls.
 PORT="${CODEX_LOCAL_PORT:-${PORT}}"
 SKIP_PREFLIGHT="${SKIP_PREFLIGHT:-0}"
 
@@ -96,7 +98,7 @@ if [[ "${EXPOSE_NETWORK:-0}" == 1 ]]; then
 fi
 
 PID_FILE="${PROJECT_DIR}/results/server.pid"
-LOG_FILE="${RESULTS_DIR}/server-$(timestamp).log"
+LOG_FILE="$(unique_path "${RESULTS_DIR}/server-$(timestamp).log")"
 [[ ! -e "${PID_FILE}" ]] || ! pid_is_ours "${PID_FILE}" || die "project server appears to already be running"
 
 log "Launching ${SERVER}"
@@ -112,10 +114,14 @@ fi
 "${SERVER}" "${ARGS[@]}" >"${LOG_FILE}" 2>&1 &
 SERVER_PID=$!
 printf '%s\n' "${SERVER_PID}" >"${PID_FILE}"
-sleep 1
-if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
-    rm -f "${PID_FILE}"
-    die "server exited during startup; inspect ${LOG_FILE}"
+if wait_ready 300 "${SERVER_PID}"; then
+    log "Server started with PID ${SERVER_PID}: http://${HOST}:${PORT}"
+else
+    if kill -0 "${SERVER_PID}" 2>/dev/null; then
+        die "server did not become healthy within 300s; inspect ${LOG_FILE}"
+    else
+        rm -f "${PID_FILE}"
+        die "server exited during startup; inspect ${LOG_FILE}"
+    fi
 fi
-log "Server started with PID ${SERVER_PID}: http://${HOST}:${PORT}"
 record_log "${MODEL_ID}: server started with PID ${SERVER_PID}; log ${LOG_FILE#"${PROJECT_DIR}/"}"

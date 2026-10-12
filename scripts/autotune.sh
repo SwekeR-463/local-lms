@@ -36,8 +36,18 @@ while (($#)); do
     shift
 done
 
-SERVER="$(resolve_server_bin)"
-MODEL="$(resolve_model_path)"
+if [[ "${DRY_RUN}" == 1 ]]; then
+    # Dry run only prints the candidate matrix, so tolerate a host without the
+    # built binary or the downloaded model (path resolution would demand them).
+    SERVER="$(resolve_server_bin 2>/dev/null || printf 'llama-server-not-built')"
+    if ! MODEL="$(resolve_model_path 2>/dev/null)"; then
+        MODEL="MODEL-PATH-MISSING"
+        warn "dry run: model file missing for ${MODEL_ID}; emitting placeholder path"
+    fi
+else
+    SERVER="$(resolve_server_bin)"
+    MODEL="$(resolve_model_path)"
+fi
 HELP="$(server_help "${SERVER}")"
 ensure_results_dir
 if ((CPU_MOE_SWEEP)); then
@@ -49,12 +59,19 @@ else
     SUMMARY="${RESULTS_DIR}/autotune-${MODEL_ID}-summary.json"
     MAX_TOKENS=32
 fi
-mkdir -p "${RUN_ROOT}"
 
+results=()
+# Resume continues the previous run in place: reuse its directory and seed
+# candidates from its summary so nothing is re-run or overwritten.
 if [[ "${RESUME}" == 1 && -f "${SUMMARY}" ]]; then
     RUN_ROOT="$(jq -r '.run_root // empty' "${SUMMARY}")"
     [[ -d "${RUN_ROOT}" ]] || die "resume summary points to missing directory: ${RUN_ROOT}"
+    while IFS= read -r prior_result; do
+        results+=("${prior_result}")
+    done < <(jq -c '.candidates[]?' "${SUMMARY}")
+    log "Resuming with ${#results[@]} prior candidates"
 fi
+mkdir -p "${RUN_ROOT}"
 
 if is_macos; then
     cpu_moe_values=(0)
@@ -175,7 +192,9 @@ run_candidate() {
     pid=$!
     printf '%s\n' "${pid}" >"${candidate_dir}/pid"
 
-    if wait_ready; then status="ready"; else status="startup-timeout"; fi
+    if wait_ready 90 "${pid}"; then status="ready"
+    elif kill -0 "${pid}" 2>/dev/null; then status="startup-timeout"
+    else status="startup-crashed"; fi
     rss_kb="$(ps -o rss= -p "${pid}" 2>/dev/null | awk '{print $1+0}')"
     vram_mb="unknown"
     if command -v nvidia-smi >/dev/null 2>&1; then
@@ -233,8 +252,7 @@ run_candidate() {
     cat "${result_file}"
 }
 
-results=()
-index=0
+index="${#results[@]}"
 for context in "${contexts[@]}"; do
     for kv in "${kv_pairs[@]}"; do
         IFS=',' read -r k_type v_type <<<"${kv}"
