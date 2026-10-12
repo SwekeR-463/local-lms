@@ -44,6 +44,7 @@ qwen36-27b-q2-dflash
 qwen38-27b-iq3
 qwen38-27b-ud-q3
 qwen38-27b-ad-iq3
+qwen38-27b-gsq-rco-iq3
 qwen3.6-35b-a3b
 qwen3.5-27b
 ```
@@ -66,6 +67,14 @@ MODEL_FILE="exact-file.gguf"
 
 Then every command accepts `my-model` as its first argument. `MODEL_PATH` can point at an existing local GGUF instead.
 
+Set `MODEL_MMPROJ_FILE` to also fetch and serve a vision projector:
+
+```bash
+MODEL_MMPROJ_FILE="mmproj-my-model.gguf"
+```
+
+`scripts/download-model.sh` stores it next to the main GGUF, `scripts/preflight.sh` reports it, and `scripts/run.sh` passes `--mmproj` whenever the server build supports the flag.
+
 ## Configuration order
 
 Later files override earlier files:
@@ -79,7 +88,9 @@ Models are stored under ignored `models/`. Generated runs are stored under `resu
 
 ## Benchmark output
 
-`benchmark.sh` sends the fixed prompt in `config/prompts/benchmark.txt` to a running server and writes JSON containing the model/profile, quant file, context, hardware, memory, prompt throughput, generation throughput, speculative acceptance, and response. This is a throughput smoke benchmark, not a quality leaderboard.
+`benchmark.sh` sends the fixed prompt in `config/prompts/benchmark.txt` to a running server and writes JSON containing the model/profile, quant file, context, hardware, memory, sampling, prompt throughput, generation throughput, speculative acceptance, and response. This is a throughput smoke benchmark, not a quality leaderboard.
+
+The request is greedy (temperature 0) by default so results stay comparable across sessions. `scripts/benchmark.sh MODEL --sampling profile` instead sends the sampling parameters declared by the profile: temperature, top-p, top-k, min-p, presence and repetition penalties, plus chat-template kwargs such as reasoning effort. Every saved JSON records `sampling_mode` and the exact `sampling` block it used.
 
 `benchmark-data/short-python/` contains six deterministic coding tasks with held-out evaluators. With one model server running, use `scripts/benchmark-code.sh MODEL`; raw answers, extracted candidates, evaluator logs, and a model-tagged JSON summary are saved under `results/`. `benchmark-data/agent-51/manifest.json` pins the separate custom 20-task SWE-bench Verified, 25-task Terminal-Bench 2.1, and six-task MLE-bench evaluation subset.
 
@@ -134,6 +145,27 @@ A targeted AD-IQ3_S speed matrix used one cold deterministic 512-token run per c
 MTP was slower despite 94.2% draft acceptance. No candidate reached 20 tok/s; `f16/f16` remained fastest, while `q8_0/q8_0` saved about 1.64 GiB for a 1.6% generation penalty. The winning configuration produced 16.08 tok/s on UD-Q3_K_XL. See `results/qwen38-27b-ad-speed-matrix.json` and `results/qwen38-27b-ud-f16-confirmation.json`.
 
 A single Terminal-Bench 2.1 `cancel-async-tasks` smoke trial gave UD-Q3_K_XL a valid 0.0 after it implemented a synchronous function instead of the required async API. The first attempt was invalid because the verifier crashed under QEMU, and the AD-IQ3_S trial was interrupted before completion. This is not a paired Terminal-Bench comparison; the preserved summary is `results/qwen38-27b-terminal-bench-smoke.json`.
+
+## 131k context decode: Ternary Bonsai PQ2_0 vs GSQ-RCO IQ3_S
+
+Two 27B-class GGUFs were measured at a configured 131,072-token context with the `f16/f16` KV cache, full Metal offload, `1024/1024` batch/ubatch, temperature 0, and seed 42. `scripts/benchmark.sh` supplied the fixed prompt from `config/prompts/benchmark.txt` (80 prompt tokens) and 512 generated tokens, with one warmup plus two measured runs after ten minutes without GPU load.
+
+| Model | Quant | File | Decode, idle | Decode, after sustained load | Decode at 116.6k depth | Prefill at 116.6k depth | Idle RSS |
+|---|---|---:|---:|---:|---:|---:|---:|
+| ISTA-DASLab `Qwen3.8-27B-GSQ-RCO-IQ3_S` | 3.50 bpw mixed | 11.77 GB | **15.92 tok/s** | 10.02 tok/s | 5.43 tok/s | 64.9 tok/s | 19.29 GiB |
+| prism-ml `Ternary-Bonsai-2-27B-PQ2_0` | 2.13 bpw ternary | 7.21 GB | **22.96 tok/s** | 13.86 tok/s | 6.86 tok/s | 64.5 tok/s | 15.02 GiB |
+
+The GSQ-RCO file is standard GGUF and loads unmodified in the pinned upstream build, so the `qwen38-27b-gsq-rco-iq3` profile needs no local override; `PQ2_0` only runs on the PrismML fork, which `config/local/ternary-bonsai-2-27b-pq2.env` selects.
+
+Idle decode at 131,072 context is 1.44x faster on Bonsai PQ2_0 than on GSQ-RCO IQ3_S, and 1.38x faster after sustained load. The gap narrows to 1.26x at 116,621 tokens of real prompt depth, where attention over the KV cache dominates the per-token cost and both models fall to 30-34% of their shallow-context speed. Prompt processing is effectively identical at that depth: 64.9 versus 64.5 tok/s. A replicate idle session for GSQ-RCO IQ3_S measured 16.09 tok/s (16.57 and 15.62), so its idle result reproduces within about 1%.
+
+Decode throughput on this laptop depends strongly on how long the GPU has been loaded. Within one 11-minute Bonsai session holding the same binary, model, context, and KV cache, `benchmark.sh` measured 19.37 tok/s at a warm start, 15.99 and 16.21 tok/s immediately after a 3.7-minute 32,928-token prefill, and 23.70 tok/s after five idle minutes. The sustained-load columns above were sampled right after a 30-minute prefill, so they are lower bounds for a cool machine rather than steady-state ratings. The earlier 2026-09-18 session recorded 14.91 tok/s for PQ2_0 at 131,072 context with the same fork commit, which falls inside today's observed 10-24 tok/s range.
+
+The publisher lists 28.1 tok/s TG128 for PQ2_0 on an M5 Pro laptop, measured with `llama-bench` at depth 0; this workbench's server benchmark holds a 131,072-token KV allocation and a full chat template, so the two figures are not directly comparable. The machine-readable record, including each file's SHA-256, the pinned runtime commits, every source file, and the thermal series, is `results/131k-decode-comparison.json`.
+
+Both profiles now carry their vision projector (`MODEL_MMPROJ_FILE`): `Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` (600 MiB) and `mmproj-Qwen3.8-27B-BF16.gguf` (888 MiB). With the projector loaded the servers idle at 15.72 GiB and 20.28 GiB RSS, and each one named all four quadrants of a red/blue/green/yellow test image correctly (`results/vision-test-*.json`).
+
+Prescribed sampling does not change throughput. Repeating the idle protocol with `scripts/benchmark.sh MODEL --sampling profile` (temperature 1.0, top-p 0.95, top-k 20, min-p 0.05 for Bonsai and 0.0 for the GSQ-RCO file, xhigh reasoning) measured 15.92 tok/s for GSQ-RCO IQ3_S and 25.76 tok/s for Bonsai PQ2_0, matching the greedy table above within the session-to-session spread. Runs issued at the end of a session are 10-20% slower than runs at the start regardless of sampler, which is the load sensitivity described above; the Bonsai profile also gained the `min_p=0.05` the card prescribes, which its earlier `min_p=0.0` was overriding.
 
 ## Ornith 1.5 35B APEX Compact
 

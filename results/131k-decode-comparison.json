@@ -1,0 +1,346 @@
+{
+  "experiment": "131k-context decode comparison",
+  "question": "decode speed of prism-ml Ternary-Bonsai-2-27B PQ2_0 and ISTA-DASLab Qwen3.8-27B GSQ-RCO IQ3_S at 131,072 context",
+  "run_at": "2026-10-10",
+  "hardware": "Apple M5 Pro, 16-core GPU, 48 GiB unified memory, macOS 26.6.2, Metal",
+  "server": {
+    "bind": "127.0.0.1:8000",
+    "gpu_layers": 99,
+    "parallel": 1,
+    "threads": 10,
+    "batch_size": 1024,
+    "ubatch_size": 1024,
+    "seed": 42,
+    "temperature": 0
+  },
+  "context": 131072,
+  "cache_type_k": "f16",
+  "cache_type_v": "f16",
+  "protocol": {
+    "idle": "10 minutes without GPU load, then 1 warmup + 2 measured scripts/benchmark.sh runs (80-token prompt, 512 generated tokens)",
+    "loaded": "identical benchmark runs without an idle period, after sustained prefill load",
+    "near_window": "one request with a 305,000-byte prompt (116,621 tokens, 89% of the window) and 128 generated tokens; the 30-minute prefill leaves the machine heat-soaked",
+    "note": "decode is the timings.predicted_per_second value returned by llama-server; RSS counts mmap-backed pages and is not private physical memory",
+    "prescribed_sampling": "scripts/benchmark.sh MODEL --sampling profile sends the profile's temperature/top_p/top_k/min_p/penalties and chat-template kwargs; the default greedy mode is unchanged",
+    "multimodal": "run.sh passes --mmproj when MODEL_MMPROJ_FILE is set; the projector is loaded by the server and only used for image input"
+  },
+  "models": [
+    {
+      "model_id": "qwen38-27b-gsq-rco-iq3",
+      "model_name": "Qwen3.8 27B GSQ-RCO IQ3_S",
+      "repository": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+      "model_file": "Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf",
+      "model_bytes": 11771546784,
+      "model_sha256": "64b53b64c7aa39f20a7e54bd80582fe595b1d745624ee8a72e92508c0326d810",
+      "runtime": {
+        "repository": "https://github.com/ggml-org/llama.cpp",
+        "commit": "11cd98842874cc1b87ac274bd2d5cceb38102bb2",
+        "backend": "Metal"
+      },
+      "decode_131k_idle": {
+        "warmup": {
+          "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-175958.json",
+          "generation_tokens_per_second": 17.056,
+          "prompt_tokens": 80,
+          "completion_tokens": 512,
+          "rss_kb": 20543856
+        },
+        "measured_runs": [
+          {
+            "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-180030.json",
+            "generation_tokens_per_second": 16.475,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 21041712
+          },
+          {
+            "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-180103.json",
+            "generation_tokens_per_second": 15.357,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 21041776
+          }
+        ],
+        "mean_measured_generation_tokens_per_second": 15.916,
+        "min": 15.357,
+        "max": 16.475,
+        "replicate_idle_session": {
+          "warmup": {
+            "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-154939.json",
+            "generation_tokens_per_second": 16.879,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 20697616
+          },
+          "measured_runs": [
+            {
+              "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-155014.json",
+              "generation_tokens_per_second": 16.567,
+              "prompt_tokens": 80,
+              "completion_tokens": 512,
+              "rss_kb": 21348528
+            },
+            {
+              "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-155047.json",
+              "generation_tokens_per_second": 15.615,
+              "prompt_tokens": 80,
+              "completion_tokens": 512,
+              "rss_kb": 21348592
+            }
+          ],
+          "mean_measured_generation_tokens_per_second": 16.091,
+          "min": 15.615,
+          "max": 16.567
+        }
+      },
+      "decode_131k_after_sustained_load": {
+        "warmup": {
+          "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-173528.json",
+          "generation_tokens_per_second": 12.192,
+          "prompt_tokens": 80,
+          "completion_tokens": 512,
+          "rss_kb": 20541728
+        },
+        "measured_runs": [
+          {
+            "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-173617.json",
+            "generation_tokens_per_second": 10.558,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 21039344
+          },
+          {
+            "source_file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-173711.json",
+            "generation_tokens_per_second": 9.479,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 21039520
+          }
+        ],
+        "mean_measured_generation_tokens_per_second": 10.018,
+        "min": 9.479,
+        "max": 10.558,
+        "load_before_session": "about 1.5 h of continuous GPU work (two 116.6k-token prefills and Bonsai runs) immediately before"
+      },
+      "decode_116621": {
+        "prompt_tokens": 116621,
+        "completion_tokens": 128,
+        "runs": [
+          {
+            "source_file": "results/deep131k-qwen38-27b-gsq-rco-iq3.json",
+            "prompt_tokens_per_second": 66.626,
+            "generation_tokens_per_second": 5.511,
+            "cached_prefix": false
+          },
+          {
+            "source_file": "results/deep131k-qwen38-27b-gsq-rco-iq3-run2.json",
+            "prompt_tokens_per_second": 63.181,
+            "generation_tokens_per_second": 5.345,
+            "cached_prefix": false
+          },
+          {
+            "source_file": "results/deep131k-qwen38-27b-gsq-rco-iq3-run3.json",
+            "prompt_tokens_per_second": 6.657,
+            "generation_tokens_per_second": 5.423,
+            "cached_prefix": true
+          }
+        ],
+        "mean_generation_tokens_per_second": 5.426
+      },
+      "multimodal": {
+        "mmproj_file": "mmproj-Qwen3.8-27B-BF16.gguf",
+        "mmproj_bytes": 931146528,
+        "mmproj_sha256": "13cb7bebccbd04afc8f4090cb949ecf8937cdf7377c5799b1a0c594e7c0d3e16",
+        "idle_rss_kb_after_load_with_mmproj": 21262784,
+        "vision_check": {
+          "image": "512x512 PNG, four quadrants (top-left red, top-right blue, bottom-left green, bottom-right yellow) split by a white cross",
+          "prompt_tokens": 342,
+          "completion_tokens": 203,
+          "answer_summary": "Top-left: Red; Top-right: Blue; Bottom-left: Green; Bottom-right: Yellow",
+          "source_file": "results/vision-test-qwen38-27b-gsq-rco-iq3.json"
+        }
+      },
+      "decode_131k_prescribed_sampling": {
+        "description": "same 131k idle protocol, but the request carries the sampling parameters the model prescribes (from config/models/<id>.env, which mirrors the GGUF general.sampling.* metadata)",
+        "sampling": {
+          "temperature": 1.0,
+          "top_p": 0.95,
+          "top_k": 20,
+          "min_p": 0.0,
+          "presence_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "chat_template_kwargs": {
+            "reasoning_effort": "xhigh"
+          }
+        },
+        "warmup_generation_tokens_per_second": 17.069,
+        "generation_tokens_per_second": [
+          16.549,
+          15.281
+        ],
+        "mean_generation_tokens_per_second": 15.915,
+        "same_session_greedy_generation_tokens_per_second": 13.631,
+        "source_files": [
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183526.json",
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183557.json",
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183631.json",
+          "results/benchmark-qwen38-27b-gsq-rco-iq3-20261010-183709.json"
+        ]
+      },
+      "idle_rss_kb_after_load_text_only": 20230832
+    },
+    {
+      "model_id": "ternary-bonsai-2-27b-pq2",
+      "model_name": "Ternary Bonsai 2 27B PQ2_0",
+      "repository": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "model_file": "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+      "model_bytes": 7206168928,
+      "model_sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1",
+      "runtime": {
+        "repository": "https://github.com/PrismML-Eng/llama.cpp",
+        "commit": "1a07bfa5f4144274c8f1c9963821dd9d9a51854b",
+        "backend": "Metal"
+      },
+      "decode_131k_idle": {
+        "warmup": {
+          "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-174822.json",
+          "generation_tokens_per_second": 23.471,
+          "prompt_tokens": 80,
+          "completion_tokens": 512,
+          "rss_kb": 16067984
+        },
+        "measured_runs": [
+          {
+            "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-174843.json",
+            "generation_tokens_per_second": 23.55,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 16565760
+          },
+          {
+            "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-174906.json",
+            "generation_tokens_per_second": 22.366,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 16565872
+          }
+        ],
+        "mean_measured_generation_tokens_per_second": 22.958,
+        "min": 22.366,
+        "max": 23.55
+      },
+      "decode_131k_after_sustained_load": {
+        "warmup": {
+          "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-162245.json",
+          "generation_tokens_per_second": 14.471,
+          "prompt_tokens": 80,
+          "completion_tokens": 512,
+          "rss_kb": 16186704
+        },
+        "measured_runs": [
+          {
+            "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-162322.json",
+            "generation_tokens_per_second": 13.964,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 16837696
+          },
+          {
+            "source_file": "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-162400.json",
+            "generation_tokens_per_second": 13.76,
+            "prompt_tokens": 80,
+            "completion_tokens": 512,
+            "rss_kb": 16837808
+          }
+        ],
+        "mean_measured_generation_tokens_per_second": 13.862,
+        "min": 13.76,
+        "max": 13.964,
+        "load_before_session": "the second 116.6k-token prefill (30 min at full GPU) ended ~90 s before"
+      },
+      "decode_116621": {
+        "prompt_tokens": 116621,
+        "completion_tokens": 128,
+        "runs": [
+          {
+            "source_file": "results/deep131k-ternary-bonsai-2-27b-pq2.json",
+            "prompt_tokens_per_second": 64.459,
+            "generation_tokens_per_second": 6.756,
+            "cached_prefix": false
+          },
+          {
+            "source_file": "results/deep131k-ternary-bonsai-2-27b-pq2-run2.json",
+            "prompt_tokens_per_second": 12.955,
+            "generation_tokens_per_second": 6.954,
+            "cached_prefix": true
+          }
+        ],
+        "mean_generation_tokens_per_second": 6.855
+      },
+      "multimodal": {
+        "mmproj_file": "Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf",
+        "mmproj_bytes": 629246976,
+        "mmproj_sha256": "6807ede61d570bb86ba34b756a0fa109edc33668604de867c6ea6d8f1d631903",
+        "idle_rss_kb_after_load_with_mmproj": 16481776,
+        "vision_check": {
+          "image": "512x512 PNG, four quadrants (top-left red, top-right blue, bottom-left green, bottom-right yellow) split by a white cross",
+          "prompt_tokens": 342,
+          "completion_tokens": 89,
+          "answer_summary": "Top-left: Red; Top-right: Blue; Bottom-left: Green; Bottom-right: Yellow",
+          "source_file": "results/vision-test-ternary-bonsai-2-27b-pq2.json"
+        }
+      },
+      "decode_131k_prescribed_sampling": {
+        "description": "same 131k idle protocol, but the request carries the sampling parameters the model prescribes (from config/models/<id>.env, which mirrors the GGUF general.sampling.* metadata)",
+        "sampling": {
+          "temperature": 1.0,
+          "top_p": 0.95,
+          "top_k": 20,
+          "min_p": 0.05,
+          "presence_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "chat_template_kwargs": {
+            "reasoning_effort": "xhigh"
+          }
+        },
+        "warmup_generation_tokens_per_second": 25.984,
+        "generation_tokens_per_second": [
+          25.894,
+          25.616
+        ],
+        "mean_generation_tokens_per_second": 25.755,
+        "same_session_greedy_generation_tokens_per_second": 24.046,
+        "source_files": [
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182323.json",
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182343.json",
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182403.json",
+          "results/benchmark-ternary-bonsai-2-27b-pq2-20261010-182424.json"
+        ]
+      },
+      "idle_rss_kb_after_load_text_only": 15749568
+    }
+  ],
+  "thermal_sensitivity": {
+    "model_id": "ternary-bonsai-2-27b-pq2",
+    "protocol": "identical 131k-context benchmark.sh runs, single server session",
+    "measurements": [
+      {
+        "state": "warm start (2 min after a light benchmark session)",
+        "generation_tokens_per_second": 19.365
+      },
+      {
+        "state": "immediately after a 3.7-minute 32,928-token prefill at 147.9 tok/s",
+        "generation_tokens_per_second": 15.988
+      },
+      {
+        "state": "same, second run",
+        "generation_tokens_per_second": 16.211
+      },
+      {
+        "state": "after 5 minutes without GPU load",
+        "generation_tokens_per_second": 23.699
+      }
+    ],
+    "note": "decode throughput on this laptop depends on how long the GPU has been loaded; the same binary, model, context and KV cache spanned 15.99 to 23.70 tok/s within one 11-minute session"
+  }
+}

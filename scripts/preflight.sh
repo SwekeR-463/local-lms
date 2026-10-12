@@ -146,10 +146,20 @@ else
     warn "MODEL_PATH/MODEL_FILE not set; model checks skipped"
 fi
 
+if [[ -n "${MODEL_MMPROJ_FILE:-}" ]]; then
+    MMPROJ_DIR="$(project_path "${MODEL_MMPROJ_DIR:-${MODEL_DIR:-models}}")"
+    CHECK_MMPROJ="${MMPROJ_DIR}/$(basename "${MODEL_MMPROJ_FILE}")"
+    if [[ -f "${CHECK_MMPROJ}" ]]; then
+        log "Multimodal projector: ${CHECK_MMPROJ} ($(human_bytes "$(file_size "${CHECK_MMPROJ}")"))"
+    else
+        warn "mmproj file not found yet: ${CHECK_MMPROJ} (text-only serving still works)"
+    fi
+fi
+
 if SERVER="$(resolve_server_bin 2>/dev/null)"; then
     log "Server: ${SERVER}"
     HELP="$(server_help "${SERVER}")"
-    for flag in --ctx-size --cache-type-k --cache-type-v --n-cpu-moe; do
+    for flag in --ctx-size --cache-type-k --cache-type-v --n-cpu-moe --mmproj; do
         if has_flag "${HELP}" "${flag}"; then log "server flag supported: ${flag}"; else warn "server flag not found: ${flag}"; fi
     done
 else

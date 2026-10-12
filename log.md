@@ -820,3 +820,139 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-09-26 23:19:26 IST` — ternary-bonsai-2-27b: server started with PID 410405; log results/server-20260926-231925.log
 
 - `2026-09-26 23:20:14 IST` — ROOT CAUSE of the speed gap found: laptop was in power-saver platform profile (EPP=power, CPU pinned at 1.0 GHz of 4.6 GHz max, GPU mostly idle waiting). powerprofilesctl set performance -> CPU 4.5 GHz under load. PTQ1_0 + -ngl 99 + -ot output.weight=CPU + SIMD head kernel now: 12.7-13.2 tok/s decode, 65.7 tok/s pp (matches the X post 11.8; 9.1x the session start 1.42). Final config: PTQ1_0, t12, q4_0 KV, -np 1, -ub 128, 8k ctx; verified via scripts/run.sh.
+
+- `2026-10-10 15:19:07 IST` — preflight completed; report saved at results/preflight-20261010-151907.txt
+
+- `2026-10-10 15:37:10 IST` — qwen38-27b-gsq-rco-iq3: model resolver selected Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf (11771546784 bytes)
+
+- `2026-10-10 15:48:35 IST` — ternary-bonsai-2-27b-pq2: model resolver selected Ternary-Bonsai-2-27B-PQ2_0.gguf (7206168928 bytes)
+
+- `2026-10-10 15:48:47 IST` — preflight completed; report saved at results/preflight-20261010-154846.txt
+
+- `2026-10-10 15:48:48 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 78080; log results/server-20261010-154847.log
+
+- `2026-10-10 16:21:59 IST` — stopped project server PID 78080
+
+- `2026-10-10 16:22:00 IST` — preflight completed; report saved at results/preflight-20261010-162159.txt
+
+- `2026-10-10 16:22:01 IST` — ternary-bonsai-2-27b-pq2: server started with PID 88065; log results/server-20261010-162200.log
+
+- `2026-10-10 16:56:19 IST` — stopped project server PID 88065
+
+- `2026-10-10 16:56:20 IST` — preflight completed; report saved at results/preflight-20261010-165619.txt
+
+- `2026-10-10 16:56:21 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 96429; log results/server-20261010-165620.log
+
+- `2026-10-10 17:28:18 IST` — stopped project server PID 96429
+
+- `2026-10-10 17:28:23 IST` — preflight completed; report saved at results/preflight-20261010-172823.txt
+
+- `2026-10-10 17:28:25 IST` — ternary-bonsai-2-27b-pq2: server started with PID 4570; log results/server-20261010-172824.log
+
+- `2026-10-10 17:28:29 IST` — stopped project server PID 4570
+
+- `2026-10-10 17:28:48 IST` — preflight completed; report saved at results/preflight-20261010-172847.txt
+
+- `2026-10-10 17:28:49 IST` — ternary-bonsai-2-27b-pq2: server started with PID 4784; log results/server-20261010-172848.log
+
+- `2026-10-10 17:29:24 IST` — stopped project server PID 4784
+
+- `2026-10-10 17:29:30 IST` — preflight completed; report saved at results/preflight-20261010-172930.txt
+
+- `2026-10-10 17:29:32 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 5165; log results/server-20261010-172931.log
+
+- `2026-10-10 17:30:20 IST` — stopped project server PID 5165
+
+- `2026-10-10 17:30:28 IST` — preflight completed; report saved at results/preflight-20261010-173028.txt
+
+- `2026-10-10 17:30:29 IST` — ternary-bonsai-2-27b-pq2: server started with PID 5546; log results/server-20261010-173028.log
+
+- `2026-10-10 17:31:55 IST` — stopped project server PID 5546
+
+- `2026-10-10 17:32:08 IST` — preflight completed; report saved at results/preflight-20261010-173208.txt
+
+- `2026-10-10 17:32:10 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 6200; log results/server-20261010-173209.log
+
+- `2026-10-10 17:34:29 IST` — stopped project server PID 6200
+
+- `2026-10-10 17:34:41 IST` — preflight completed; report saved at results/preflight-20261010-173441.txt
+
+- `2026-10-10 17:34:42 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 7002; log results/server-20261010-173441.log
+
+- `2026-10-10 17:37:31 IST` — stopped project server PID 7002
+
+- `2026-10-10 17:47:55 IST` — preflight completed; report saved at results/preflight-20261010-174754.txt
+
+- `2026-10-10 17:47:56 IST` — ternary-bonsai-2-27b-pq2: server started with PID 11023; log results/server-20261010-174755.log
+
+- `2026-10-10 17:49:07 IST` — stopped project server PID 11023
+
+- `2026-10-10 17:59:23 IST` — preflight completed; report saved at results/preflight-20261010-175923.txt
+
+- `2026-10-10 17:59:25 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 14324; log results/server-20261010-175924.log
+
+- `2026-10-10 18:01:24 IST` — stopped project server PID 14324
+
+- `2026-10-10 18:01:24 IST` — preflight completed; report saved at results/preflight-20261010-180124.txt
+
+- `2026-10-10 18:01:25 IST` — ternary-bonsai-2-27b-pq2: server started with PID 15552; log results/server-20261010-180124.log
+
+- `2026-10-10 18:12:14 IST` — stopped project server PID 15552
+
+## 131k context decode — 2026-10-10
+
+- Downloaded and checksum-verified `ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF` file `Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf` (11,771,546,784 bytes; SHA-256 `64b53b64c7aa39f20a7e54bd80582fe595b1d745624ee8a72e92508c0326d810`) and `prism-ml/Ternary-Bonsai-2-27B-gguf` file `Ternary-Bonsai-2-27B-PQ2_0.gguf` (7,206,168,928 bytes; SHA-256 `3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1`, unchanged from the 2026-09-18 download). Added profile `qwen38-27b-gsq-rco-iq3` (131,072 context, `f16/f16`), which loads unmodified in the pinned upstream build (11cd988); PQ2_0 still requires the PrismML fork (1a07bfa) selected by `config/local/ternary-bonsai-2-27b-pq2.env`.
+- Idle protocol (10 minutes without GPU load, 1 warmup + 2 measured `scripts/benchmark.sh` runs of 512 tokens at 131,072 context): GSQ-RCO IQ3_S 15.92 tok/s (16.48/15.36; replicate session 16.09) and Bonsai PQ2_0 22.96 tok/s (23.55/22.37). RSS after load: 19.29 GiB and 15.02 GiB.
+- Near-window depth: a 305,000-byte prompt (116,621 tokens, 89% of the window) plus 128 generated tokens measured GSQ-RCO IQ3_S at 5.43 tok/s decode and 64.9 tok/s prefill (3 runs, one with a reused prefix) and Bonsai PQ2_0 at 6.86 tok/s and 64.5 tok/s (2 runs, one reused). Each cold run spent about 30 minutes in prefill.
+- Machine-state dependence quantified on Bonsai PQ2_0 in a single session: 19.37 tok/s at a warm start, 15.99/16.21 immediately after a 3.7-minute 32,928-token prefill, 23.70 after five idle minutes; sessions sampled right after a 30-minute prefill measured 13.96/13.76 and 14.47. Same binary, model, context, and KV cache throughout, so Mac decode numbers from this workbench must state the preceding GPU load.
+- Results: `results/131k-decode-comparison.json` (tracked) plus raw single-request `results/deep131k-*.json`; the per-run `results/benchmark-*.json` files stay untracked.
+
+- `2026-10-10 18:17:16 IST` — qwen38-27b-gsq-rco-iq3: model resolver selected Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf (11771546784 bytes)
+
+- `2026-10-10 18:18:40 IST` — qwen38-27b-gsq-rco-iq3: mmproj ready: mmproj-Qwen3.8-27B-BF16.gguf (931146528 bytes)
+
+- `2026-10-10 18:18:44 IST` — ternary-bonsai-2-27b-pq2: model resolver selected Ternary-Bonsai-2-27B-PQ2_0.gguf (7206168928 bytes)
+
+- `2026-10-10 18:19:42 IST` — ternary-bonsai-2-27b-pq2: mmproj ready: Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf (629246976 bytes)
+
+- `2026-10-10 18:22:52 IST` — preflight completed; report saved at results/preflight-20261010-182251.txt
+
+- `2026-10-10 18:22:53 IST` — ternary-bonsai-2-27b-pq2: server started with PID 21276; log results/server-20261010-182252.log
+
+- `2026-10-10 18:24:45 IST` — stopped project server PID 21276
+
+- `2026-10-10 18:34:51 IST` — preflight completed; report saved at results/preflight-20261010-183451.txt
+
+- `2026-10-10 18:34:52 IST` — qwen38-27b-gsq-rco-iq3: server started with PID 24639; log results/server-20261010-183451.log
+
+- `2026-10-10 18:37:35 IST` — stopped project server PID 24639
+
+## Prescribed sampling and vision projectors — 2026-10-10
+
+- `scripts/benchmark.sh` gained `--sampling profile`, which sends the profile's temperature, top-p, top-k, min-p, presence/repetition penalties, and chat-template kwargs instead of the fixed greedy request; every result JSON now records `sampling_mode` and the exact `sampling` block. The default stays greedy so earlier numbers remain comparable.
+- The Bonsai PQ2_0 profile had `min_p=0.0`, which overrode llama.cpp's 0.05 default that the model card prescribes; now `0.05`.
+- Added `MODEL_MMPROJ_FILE` support: `download-model.sh` fetches the projector next to the GGUF and records `results/model-<id>-mmproj.json`, `preflight.sh` reports it, and `run.sh` passes `--mmproj` when the build supports it. Downloaded `Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf` (629,246,976 bytes; SHA-256 `6807ede61d570bb86ba34b756a0fa109edc33668604de867c6ea6d8f1d631903`) and `mmproj-Qwen3.8-27B-BF16.gguf` (931,146,528 bytes; SHA-256 `13cb7bebccbd04afc8f4090cb949ecf8937cdf7377c5799b1a0c594e7c0d3e16`).
+- Prescribed sampling at 131,072 context with the projectors loaded (2 runs each, idle protocol): GSQ-RCO IQ3_S 15.92 tok/s, Bonsai PQ2_0 25.76 tok/s — matching the greedy results within session drift, so sampler choice does not move throughput. Idle RSS with the projector is 20.28 GiB and 15.72 GiB.
+- Vision verified end to end on both servers: a 512x512 PNG with four quadrants split by a white cross was described correctly (top-left red, top-right blue, bottom-left green, bottom-right yellow) in `results/vision-test-*.json`.
+
+- `2026-10-10 18:38:15 IST` — preflight completed; report saved at results/preflight-20261010-183815.txt
+
+- `2026-10-10 18:38:20 IST` — ternary-bonsai-2-27b-pq2: model resolver selected Ternary-Bonsai-2-27B-PQ2_0.gguf (7206168928 bytes)
+
+- `2026-10-10 18:38:21 IST` — ternary-bonsai-2-27b-pq2: mmproj ready: Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf (629246976 bytes)
+
+## PTQ1_0 dropped — 2026-10-10
+
+- At user request, removed the PTQ1_0 artifacts and froze the workbench on the two models already on disk; no further downloads. Deleted the interrupted download `models/Ternary-Bonsai-2-27B-PTQ1_0.gguf.part` (1,428,598,784 bytes of ~7 GB, no transfer was running) and the PTQ1_0 profile `config/models/ternary-bonsai-2-27b.env` (tracked delete, staged; its uncommitted 131k/sampling edit went with it) plus the ignored override `config/local/ternary-bonsai-2-27b.env`.
+- Remaining models, both verified to resolve with their projectors: `qwen38-27b-gsq-rco-iq3` (Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf, 11,771,546,784 bytes + mmproj-Qwen3.8-27B-BF16.gguf) on the pinned upstream build, and `ternary-bonsai-2-27b-pq2` (Ternary-Bonsai-2-27B-PQ2_0.gguf, 7,206,168,928 bytes + Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf) on the PrismML fork; both profiles stay at 131,072 context, f16/f16 KV, projector loaded.
+- `ternary-bonsai-2-27b` is no longer a known model ID; `scripts/autotune.sh <either live model> --dry-run --quick` lists 3 candidates. The AGENTS.md check `scripts/autotune.sh kat-coder --dry-run --quick` still fails because KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf was deleted on 2026-09-19 and re-downloading is out of scope, so the kat-coder profile stays model-less by design.
+
+## Decode ceiling analysis — 2026-10-10 (analysis only; nothing measured, no benchmark run)
+
+- Question asked: can these two models reach 25-30 tok/s decode at 131,072 context? Answer from arithmetic over existing results and GGUF metadata, not from new runs. No GPU work was done, so every number in `results/` is unchanged.
+- Both GGUFs are the same `qwen35` hybrid geometry: 64 blocks, `full_attention_interval = 4` (16 full-attention layers, blk.3..63), `head_count_kv = 4`, `key_length = value_length = 256`. That is 65,536 bytes of f16 KV read per token per layer set, i.e. 8.59 GB of KV versus 11.77 GB (GSQ-RCO) and 7.21 GB (Bonsai) of weights at a full window. The KV figure matches the measured RSS delta (+7.5 to +7.7 GB over weights), confirming it.
+- Apple lists 307 GB/s for M5 Pro. Both idle 131k results imply the same effective bandwidth: 15.92 tok/s x ~11.8 GB = 187 GB/s and 25.76 tok/s x 7.21 GB = 186 GB/s, so shallow decode runs at 61% of peak on this box with two different runtimes and quant types.
+- The published "131k" idle/sustained figures hold a 131,072-token allocation but only ~592 live positions (80-token prompt, 512 generated). They price the allocation, not a populated window. The real depth result stays 5.43 tok/s (GSQ-RCO) and 6.86 tok/s (Bonsai) at 116,621 tokens, which implies ~105 GB/s effective — consistent with the logged heat-soak loss (15.99 vs 23.70 tok/s inside one Bonsai session).
+- Consequence: at shallow depth GSQ-RCO is capped by its own weights at 307/11.77 = ~26 tok/s even at 100% of peak bandwidth, so 25-30 is not reachable by bandwidth tuning alone; Bonsai already sits at 25.76 in the prescribed-sampling idle protocol. At a genuinely filled window the levers below sum to roughly 2-3x over today's 5.43/6.86, i.e. a realistic band near 12-20 tok/s, with 25-30 only if speculative decoding accepts well on the actual workload.
+- Levers found, all without downloads: (1) KV quantization at 131k — `q8_0`/`q4_0`/`iq4_nl` are available in both working builds today and cut deep-context KV traffic from 8.59 GB to ~2.4-3.4 GB per token; the fork's `turbo2/turbo3/turbo4` (6.4x/4.9x/3.8x vs f16 per `docs/KV-cache-quantization.md`) would cut it to 1.3-2.3 GB, and `.cache/llama-cpp-turboquant/src` does contain `src/models/qwen35.cpp`, so that build may load these models without a rebase — unverified, it needs a load test. (2) Speculative decoding with no draft model: the pinned build 11cd988 offers `ngram-simple`, `ngram-map-k`, `ngram-map-k4v`, `ngram-mod`, `ngram-cache`, and `run.sh` already wires `SPEC_TYPE` plus the `--spec-ngram-mod-*` knobs; this is the only lever that can exceed the weight-bandwidth roofline because one pass emits several accepted tokens. (3) Thermal/power, which the existing series already shows at 1.4-1.5x: `pmset -g custom` reports AC `powermode 0` (automatic, not Low Power Mode) and battery `powermode 1`, so AC plus a cool machine is free headroom. (4) `-fa on` is already passed when the binary advertises `-fa`, which both working builds do.
+- Nothing above is measured. The first cheap confirmation would be a short-context sweep of KV types plus one `--spec-type ngram-mod` run (~minutes), then a single 131k near-window run per model (~35 minutes of prefill each) only if the cheap step shows the expected traffic and acceptance.
