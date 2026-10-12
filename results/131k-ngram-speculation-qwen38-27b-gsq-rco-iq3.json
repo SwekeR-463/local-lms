@@ -1,0 +1,131 @@
+{
+  "question": "Can qwen38-27b-gsq-rco-iq3 reach 30-40 tok/s decode at 131,072 context on this machine?",
+  "date": "2026-10-12",
+  "model_id": "qwen38-27b-gsq-rco-iq3",
+  "model": {
+    "name": "Qwen3.8 27B GSQ-RCO IQ3_S",
+    "repository": "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+    "file": "Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf",
+    "bytes": 11771546784,
+    "sha256": "64b53b64c7aa39f20a7e54bd80582fe595b1d745624ee8a72e92508c0326d810",
+    "mmproj_file": "mmproj-Qwen3.8-27B-BF16.gguf",
+    "mmproj_bytes": 931146528
+  },
+  "machine": {
+    "chip": "Apple M5 Pro",
+    "memory_bytes": 51539607552,
+    "macos": "26.6.2",
+    "cpu_threads_total": 15,
+    "cpu_perf_cores": 5,
+    "power_source": "AC"
+  },
+  "runtime": {
+    "server_bin": ".cache/llama.cpp/build/bin/llama-server",
+    "commit": "11cd98842874cc1b87ac274bd2d5cceb38102bb2",
+    "context": 131072,
+    "cache_type_k": "f16",
+    "cache_type_v": "f16",
+    "batch_size": 1024,
+    "ubatch_size": 1024,
+    "gpu_layers": 99,
+    "flash_attn": true
+  },
+  "bandwidth_probe": {
+    "description": "ad-hoc STREAM-style pthread probe, 128 MiB per thread, best of 3 passes, GB/s decimal; run on the same machine with the server stopped",
+    "unit": "GB/s",
+    "read_only": {
+      "threads_4": 132.9,
+      "threads_8": 236.9,
+      "threads_12": 293.6,
+      "threads_15": 313.1
+    },
+    "triad_2r1w": {
+      "threads_4": 272.7,
+      "threads_8": 263.9,
+      "threads_12": 364.8,
+      "threads_15": 321.5
+    },
+    "apple_published_peak_gbps": 307
+  },
+  "roofline": {
+    "weights_bytes_per_decode_step": 11771546784,
+    "measured_peak_read_gbps": 313.1,
+    "absolute_decode_ceiling_tok_s_at_measured_peak": 26.6,
+    "absolute_decode_ceiling_tok_s_at_apple_spec": 26.1,
+    "bandwidth_required_for_30_tok_s_gbps": 353.1,
+    "bandwidth_required_for_40_tok_s_gbps": 470.9,
+    "note": "dense model: every weight is read once per decode step, so novel-text decode cannot exceed the memory bus no matter the software settings"
+  },
+  "fixed_prompt_runs": {
+    "prompt": "config/prompts/benchmark.txt (80 tokens), greedy, 512 generated tokens, 131072 configured context",
+    "baseline_no_spec": [
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-194854.json", "generation_tok_s": 16.7253, "draft_n": 0},
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-194945.json", "generation_tok_s": 16.6130, "draft_n": 0},
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-195036.json", "generation_tok_s": 16.6155, "draft_n": 0}
+    ],
+    "spec_ngram_mod": [
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-195133.json", "occurrence": 1, "generation_tok_s": 14.9356, "draft_n": 0, "draft_acceptance": null},
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-195228.json", "occurrence": 2, "generation_tok_s": 14.5597, "draft_n": 120, "draft_acceptance": 0.9333},
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-195300.json", "occurrence": 3, "generation_tok_s": 44.3722, "draft_n": 456, "draft_acceptance": 0.9846},
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-195357.json", "occurrence": 4, "generation_tok_s": 53.0510, "draft_n": 480, "draft_acceptance": 0.9563},
+      {"file": "results/benchmark-qwen38-27b-gsq-rco-iq3-20261012-195420.json", "occurrence": 5, "generation_tok_s": 68.5065, "draft_n": 488, "draft_acceptance": 1.0}
+    ]
+  },
+  "repetitive_prompt_experiment": {
+    "prompt": "Output the following two lines exactly, alternating them, for 20 pairs (40 lines total). Output nothing else - no explanation, no numbering, no blank lines.\n\nThe quick brown fox jumps over the lazy dog.\nPack my box with five dozen liquor jugs.",
+    "conditions": [
+      {"spec_type": "none", "generation_tok_s": 16.7167, "predicted_n": 542, "draft_n": 0, "output_sha1_12": "cb68c0f85dc4"},
+      {"spec_type": "ngram-mod", "generation_tok_s": 34.6082, "predicted_n": 542, "draft_n": 357, "draft_accepted": 355, "draft_acceptance": 0.9944, "output_sha1_12": "cb68c0f85dc4"}
+    ],
+    "outputs_byte_identical": true
+  },
+  "coding_suite": {
+    "suite": "short-python-v1",
+    "server": "SPEC_TYPE=ngram-mod, 131072 context, f16/f16, upstream 11cd988",
+    "thermal_note": "both runs followed approximately 20 minutes of sustained GPU load; per-task decode decayed from ~17 to ~10 tok/s within the first suite and sat at 10-11 tok/s throughout the second, consistent with the documented heat-soak behavior",
+    "runs": [
+      {
+        "sampling_mode": "greedy",
+        "reasoning_effort": "low",
+        "max_tokens": 1024,
+        "score": "3/6",
+        "summary": "results/short-python-qwen38-27b-gsq-rco-iq3-20261012-195736/summary.json",
+        "tasks": [
+          {"id": "merge-intervals", "passed": true, "finish_reason": "stop", "completion_tokens": 544, "generation_tok_s": 17},
+          {"id": "binary-metrics", "passed": false, "finish_reason": "length", "completion_tokens": 1024, "generation_tok_s": 16},
+          {"id": "flatten-dict", "passed": true, "finish_reason": "stop", "completion_tokens": 690, "generation_tok_s": 14},
+          {"id": "dependency-order", "passed": false, "finish_reason": "length", "completion_tokens": 1024, "generation_tok_s": 9},
+          {"id": "parse-env", "passed": false, "finish_reason": "length", "completion_tokens": 1024, "generation_tok_s": 10},
+          {"id": "batch-iterable", "passed": true, "finish_reason": "stop", "completion_tokens": 1018, "generation_tok_s": 11}
+        ]
+      },
+      {
+        "sampling_mode": "profile",
+        "sampling": {"temperature": 1.0, "top_p": 0.95, "top_k": 20, "min_p": 0.0, "presence_penalty": 0.0, "repetition_penalty": 1.0, "chat_template_kwargs": {"reasoning_effort": "xhigh"}},
+        "max_tokens": 4096,
+        "score": "4/6",
+        "summary": "results/short-python-qwen38-27b-gsq-rco-iq3-20261012-200633/summary.json",
+        "tasks": [
+          {"id": "merge-intervals", "passed": false, "finish_reason": "length", "completion_tokens": 4096, "generation_tok_s": 11, "draft_n": 24, "draft_accepted": 14},
+          {"id": "binary-metrics", "passed": true, "finish_reason": "stop", "completion_tokens": 1232, "generation_tok_s": 11, "draft_n": 0, "draft_accepted": 0},
+          {"id": "flatten-dict", "passed": true, "finish_reason": "stop", "completion_tokens": 2071, "generation_tok_s": 11, "draft_n": 120, "draft_accepted": 82},
+          {"id": "dependency-order", "passed": false, "finish_reason": "length", "completion_tokens": 4096, "generation_tok_s": 10, "draft_n": 0, "draft_accepted": 0},
+          {"id": "parse-env", "passed": true, "finish_reason": "stop", "completion_tokens": 1809, "generation_tok_s": 10, "draft_n": 0, "draft_accepted": 0},
+          {"id": "batch-iterable", "passed": true, "finish_reason": "stop", "completion_tokens": 2248, "generation_tok_s": 11, "draft_n": 48, "draft_accepted": 33}
+        ],
+        "failure_cause": "both failures hit the 4096-token cap; the evaluator saw no complete function (KeyError), so these are truncations, not wrong implementations"
+      }
+    ]
+  },
+  "conclusions": {
+    "novel_text_decode_ceiling_tok_s": 26.6,
+    "target_30_40_reachable_for_novel_text": false,
+    "reason": "30 tok/s would need 353 GB/s and 40 tok/s 471 GB/s, above both the 313 GB/s measured read peak and Apple's 307 GB/s specification for this chip",
+    "target_30_40_reachable_for_repeat_heavy_output": true,
+    "evidence": "fresh repetitive prompt measured 34.61 tok/s with ngram-mod (99.4% acceptance) versus 16.72 tok/s without speculation; repeated identical requests warm the ngram cache and reached 44.4-68.5 tok/s",
+    "novel_text_ngram_cost": "about 12 percent slower on first occurrence (14.6-14.9 vs 16.6-16.7 tok/s)",
+    "coding_workload_result": "10-11 tok/s sustained under load with sparse ngram drafting; 30-40 tok/s is not sustained for coding on this hardware",
+    "quality_note": "outputs were byte-identical on the repetitive prompt; warm fixed-prompt reruns diverged from the non-speculative greedy response after the first occurrence",
+    "command": "SPEC_TYPE=ngram-mod scripts/run.sh qwen38-27b-gsq-rco-iq3"
+  }
+}
