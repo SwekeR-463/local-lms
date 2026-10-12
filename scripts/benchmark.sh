@@ -58,7 +58,7 @@ trap 'rm -f "${REQUEST}" "${RESPONSE}"' EXIT
 jq -n --arg model "${MODEL_ID}" --rawfile prompt "${PROMPT_FILE}" --argjson seed "${SEED:-42}" \
     --argjson max_tokens "${MAX_TOKENS}" --argjson sampling "${SAMPLING_JSON}" \
     '{model:$model,messages:[{role:"user",content:$prompt}],max_tokens:$max_tokens,seed:$seed} + $sampling' >"${REQUEST}"
-curl --fail --silent --show-error -H 'Content-Type: application/json' --data-binary "@${REQUEST}" \
+curl --fail --silent --show-error --max-time "${BENCHMARK_TIMEOUT_SECONDS:-1800}" -H 'Content-Type: application/json' --data-binary "@${REQUEST}" \
     "http://${HOST}:${PORT}/v1/chat/completions" >"${RESPONSE}"
 jq -e '(.choices[0].message.reasoning_content // "") + (.choices[0].message.content // .choices[0].text // "") | length > 0' "${RESPONSE}" >/dev/null || die "benchmark returned no completion"
 
@@ -72,7 +72,7 @@ else
     if command -v nvidia-smi >/dev/null; then HARDWARE+="; $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader | head -n1)"; fi
 fi
 
-OUTPUT="${RESULTS_DIR}/benchmark-${MODEL_ID}-$(timestamp).json"
+OUTPUT="$(unique_path "${RESULTS_DIR}/benchmark-${MODEL_ID}-$(timestamp).json")"
 jq --arg model_id "${MODEL_ID}" --arg model_name "${MODEL_NAME:-${MODEL_ID}}" \
     --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg hardware "${HARDWARE}" \
     --argjson context "${CTX_SIZE:-${PREFERRED_CONTEXT}}" --argjson rss_kb "${RSS_KB}" \

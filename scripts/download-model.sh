@@ -108,8 +108,11 @@ fi
 [[ -s "${OUTPUT_PATH}" ]] || die "downloaded model is empty: ${OUTPUT_PATH}"
 MODEL_BYTES="$(file_size "${OUTPUT_PATH}")"
 MODEL_SHA256="$(sha256_file "${OUTPUT_PATH}")"
-MODEL_SIZE="$(jq -r --arg file "${MODEL_FILE_RESOLVED}" '.siblings[] | select(.rfilename == $file) | (.size // 0)' <<<"${MODEL_JSON}")"
 MODEL_SHA256_HF="$(jq -r --arg file "${MODEL_FILE_RESOLVED}" '.siblings[] | select(.rfilename == $file) | (.lfs.sha256 // .sha // "")' <<<"${MODEL_JSON}")"
+if [[ -n "${MODEL_SHA256_HF}" && "${MODEL_SHA256_HF}" != "${MODEL_SHA256}" ]]; then
+    die "sha256 mismatch for ${MODEL_FILE_RESOLVED}: expected ${MODEL_SHA256_HF}, got ${MODEL_SHA256}"
+fi
+MODEL_SIZE="$(jq -r --arg file "${MODEL_FILE_RESOLVED}" '.siblings[] | select(.rfilename == $file) | (.size // 0)' <<<"${MODEL_JSON}")"
 if [[ "${MODEL_SIZE}" == "0" || -z "${MODEL_SIZE}" ]]; then
     MODEL_SIZE="$(curl --fail --silent --show-error --location --head "${DOWNLOAD_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
 fi
@@ -148,6 +151,9 @@ if [[ -n "${MODEL_MMPROJ_FILE:-}" ]]; then
     MMPROJ_SHA256="$(sha256_file "${MMPROJ_PATH}")"
     MMPROJ_SIZE="$(jq -r --arg file "${MODEL_MMPROJ_FILE}" '.siblings[] | select(.rfilename == $file) | (.size // 0)' <<<"${MODEL_JSON}")"
     MMPROJ_SHA256_HF="$(jq -r --arg file "${MODEL_MMPROJ_FILE}" '.siblings[] | select(.rfilename == $file) | (.lfs.sha256 // .sha // "")' <<<"${MODEL_JSON}")"
+    if [[ -n "${MMPROJ_SHA256_HF}" && "${MMPROJ_SHA256_HF}" != "${MMPROJ_SHA256}" ]]; then
+        die "sha256 mismatch for ${MODEL_MMPROJ_FILE}: expected ${MMPROJ_SHA256_HF}, got ${MMPROJ_SHA256}"
+    fi
     [[ "${MMPROJ_SIZE}" == "0" || -z "${MMPROJ_SIZE}" ]] && MMPROJ_SIZE="$(curl --fail --silent --show-error --location --head "${MMPROJ_URL}" | tr -d '\r' | awk -F': ' 'tolower($1) == "content-length" {value=$2} END {print value+0}')"
     jq -n \
         --arg id "${MODEL_ID}" \

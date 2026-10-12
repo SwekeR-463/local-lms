@@ -26,8 +26,13 @@ for _ in {1..30}; do
     sleep 1
 done
 if kill -0 "${PID}" 2>/dev/null; then
-    warn "server did not stop after 30 seconds; sending TERM again"
-    kill -TERM "${PID}" 2>/dev/null || true
+    warn "server did not stop after 30 seconds; sending SIGKILL"
+    kill -KILL "${PID}" 2>/dev/null || true
+    sleep 1
 fi
-rm -f "${PID_FILE}"
+if ! kill -0 "${PID}" 2>/dev/null; then
+    rm -f "${PID_FILE}"
+else
+    warn "server survived SIGKILL; keeping PID file"
+fi
 record_log "stopped project server PID ${PID}"

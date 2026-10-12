@@ -36,7 +36,7 @@ while (($#)); do
 done
 
 ensure_results_dir
-PREFLIGHT_FILE="${RESULTS_DIR}/preflight-$(timestamp).txt"
+PREFLIGHT_FILE="$(unique_path "${RESULTS_DIR}/preflight-$(timestamp).txt")"
 exec > >(tee "${PREFLIGHT_FILE}") 2>&1
 
 log "Starting preflight"
@@ -55,6 +55,12 @@ for command_name in "${required_commands[@]}"; do
         fi
     fi
 done
+
+if command -v ss >/dev/null 2>&1 || command -v lsof >/dev/null 2>&1; then
+    log "command ok: port check tool"
+else
+    ((DIAGNOSE)) && warn "no ss or lsof; port-in-use checks cannot be verified" || die "port check tool missing: install ss (iproute2) or lsof"
+fi
 
 if command -v jq >/dev/null 2>&1; then
     log "command ok: jq ($(command -v jq))"
