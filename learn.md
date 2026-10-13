@@ -1,9 +1,9 @@
 # How we ran a 35B MoE model at 131k context on a laptop GPU
 
-This document explains the three key technologies that made it possible to run
-**KAT-Coder V2.5 Dev** — a 35-billion-parameter Mixture-of-Experts model —
-on an **NVIDIA RTX 4050 Max-Q (6 GB VRAM)** with **15 GB system RAM** at
-**131,072 tokens of context**, generating at ~8 tok/s.
+This document explains the three techniques that made it possible to run
+**KAT-Coder V2.5 Dev**, a 35-billion-parameter Mixture-of-Experts model,
+on an NVIDIA RTX 4050 Max-Q (6 GB VRAM) with 15 GB system RAM at 131,072
+tokens of context, generating at ~8 tok/s.
 
 ---
 
@@ -11,17 +11,17 @@ on an **NVIDIA RTX 4050 Max-Q (6 GB VRAM)** with **15 GB system RAM** at
 
 | Component | Capacity | What the model demands |
 |-----------|----------|----------------------|
-| Model weights (APEX I-Mini) | — | 12.5 GiB on disk |
+| Model weights (APEX I-Mini) | n/a | 12.5 GiB on disk |
 | GPU VRAM | 6 GiB | Full model won't fit |
 | System RAM | 15 GiB | Barely fits weights alone |
-| KV cache at 131k (FP16) | — | ~2.5 GiB just for attention keys/values |
+| KV cache at 131k (FP16) | n/a | ~2.5 GiB just for attention keys/values |
 
 A naive full-offload attempt would either OOM or fall back to CPU-only
 inference at <1 tok/s. Three techniques made this viable:
 
 ---
 
-## 2. Technique 1: APEX — Adaptive Precision for Expert Models
+## 2. Technique 1: APEX, Adaptive Precision for Expert Models
 
 **Source:** [APEX project](https://github.com/mudler/apex-quant) by the
 [LocalAI](https://github.com/mudler/LocalAI) team (mudler).
@@ -43,7 +43,7 @@ in the model and applies different precision levels:
 ├─────────────────────────────────────────────────────┤
 │  Middle routed      │  Aggressive compression      │
 │  experts (layers    │  Most of the 35B params live  │
-│  6–35 of 40)       │  here, only 8/256 active/token│
+│  6-35 of 40)       │  here, only 8/256 active/token│
 ├─────────────────────────────────────────────────────┤
 │  Shared expert      │  Higher precision            │
 │  (always active)    │  Active on every token        │
@@ -56,7 +56,7 @@ in the model and applies different precision levels:
 ### Why this works for MoE
 
 In a standard dense model, every parameter participates in every token.
-In MoE, only ~8 out of 256 routed experts activate per token — the other
+In MoE, only ~8 out of 256 routed experts activate per token; the other
 248 sit idle. APEX exploits this: the rarely-used expert weights can be
 compressed much more aggressively because their individual contribution
 to output quality is diluted across many experts.
@@ -78,7 +78,7 @@ importance matrices that guide which weights get more bits.
 
 ---
 
-## 3. Technique 2: TurboQuant — KV cache compression
+## 3. Technique 2: TurboQuant, KV cache compression
 
 **Source:** "TurboQuant: Fast Walsh-Hadamard Quantization for KV Cache
 Compression", Google Research, ICLR 2026.
@@ -103,21 +103,21 @@ On a 6 GB GPU, that's a third of VRAM gone before loading a single weight.
 ### How TurboQuant compresses the KV cache
 
 TurboQuant applies a three-stage pipeline to compress K and V vectors to
-2–4 bits per value instead of 16, achieving **4–6× memory reduction** with
+2-4 bits per value instead of 16, achieving **4-6× memory reduction** with
 near-lossless quality:
 
 ```
 Stage 1: Walsh-Hadamard Rotation
 ─────────────────────────────────
 Random rotation matrix applied to KV vectors. This spreads "outlier"
-activations evenly across all dimensions — the vectors become
-approximately Gaussian-distributed. This is the key insight: uniform
-Gaussian data can be scalar-quantized with minimal error.
+activations evenly across all dimensions, so the vectors become
+approximately Gaussian-distributed. Uniform Gaussian data can then be
+scalar-quantized with minimal error.
 
 Stage 2: Lloyd-Max scalar quantization
 ───────────────────────────────────────
 Each coordinate is independently mapped to the nearest quantization
-centroid. At 2–4 bits, this gives 4–16 possible values per coordinate.
+centroid. At 2-4 bits, this gives 4-16 possible values per coordinate.
 
 Stage 3: 1-bit QJL residual correction
 ───────────────────────────────────────
@@ -180,8 +180,8 @@ a weight and immediately need it, the round-trip latency kills throughput.
 └──────────────────────────────────────┘
 ```
 
-`--n-cpu-moe 32` means: keep the expert weights for layers 0–32 on GPU,
-and offload expert weights for layers 33–39 to CPU RAM. Since only 8 of
+`--n-cpu-moe 32` means: keep the expert weights for layers 0-32 on GPU,
+and offload expert weights for layers 33-39 to CPU RAM. Since only 8 of
 256 experts activate per token, and most activated experts tend to cluster
 in certain layers, this rarely causes a cache miss.
 
@@ -222,11 +222,11 @@ mmap'd lazily into active RSS. The sweet spot is model-specific.
 
 KAT-Coder uses a three-layer agentic post-training framework:
 
-1. **Service Layer** — Atomic capability units (read file, run test, search)
-   with logical validation
-2. **Task Layer** — Complex tasks derived from real software engineering
+1. **Service Layer.** Atomic capability units such as read file, run test,
+   and search, with logical validation
+2. **Task Layer.** Complex tasks derived from real software engineering
    scenarios, managing multi-step interaction trajectories
-3. **Eval Layer** — Filters and formats data, providing quality signals back
+3. **Eval Layer.** Filters and formats data and feeds quality signals back
    into the training loop
 
 This is reinforced by **Multi-Teacher On-Policy Distillation** across five
@@ -243,9 +243,9 @@ Despite being 35B total, only 3B parameters activate per token. This means:
 
 ## 6. The winning configuration
 
-After automated tuning across 16 candidates (8k → 131k contexts, turbo2/3/4
-KV cache variants, n-cpu-moe 30/32), the optimal configuration for this
-hardware is:
+After automated tuning across 16 candidates, from 8k to 131k contexts with
+turbo2/3/4 KV cache variants and n-cpu-moe 30/32, the best configuration for
+this hardware is:
 
 ```
 llama-server \
@@ -275,7 +275,7 @@ llama-server \
 - **turbo3 V cache**: Values benefit less from precision; turbo3's ~5×
   compression saves ~800 MiB vs q8_0 with <0.5% perplexity impact.
 - **n-cpu-moe=32**: The sweet spot where expert weights fit in VRAM without
-  pushing into swap. At 30, RSS can spike 2–3 GiB higher.
+  pushing into swap. At 30, RSS can spike 2-3 GiB higher.
 - **-fa on**: FlashAttention fuses the attention computation, reducing
   VRAM fragmentation during long-context prompt processing.
 
@@ -287,7 +287,7 @@ llama-server \
 
 This laptop has 4 GiB swap, and 572 MiB was already in use before loading
 the model. At 131k with n-cpu-moe too low, the kernel would page out
-expert weights, causing 10–50× slowdowns. The safety margin is tight:
+expert weights, causing 10-50× slowdowns. The safety margin is tight:
 only ~0.8 GiB VRAM and ~6 GiB RAM headroom remain at 131k.
 
 ### Build time is dominated by CUDA template compilation
@@ -313,15 +313,15 @@ or unified memory like Apple M-series).
 
 ## References
 
-- [APEX: Adaptive Precision for EXpert Models](https://github.com/mudler/apex-quant) — LocalAI team
+- [APEX: Adaptive Precision for EXpert Models](https://github.com/mudler/apex-quant): LocalAI team
 - [APEX Technical Report (PDF)](https://github.com/mudler/apex-quant/blob/main/paper/APEX_Technical_Report.pdf)
-- [TurboQuant: KV Cache Compression](https://openreview.net/forum?id=turboquant2026) — Google Research, ICLR 2026
-- [TurboQuant llama.cpp fork](https://github.com/TheTom/llama-cpp-turboquant) — TheTom
-- [KAT-Coder V2.5 Dev](https://huggingface.co/Kwaipilot/KAT-Coder-V2.5-Dev) — Kwaipilot/Kuaishou
-- [KAT-Coder V2.5 Dev APEX GGUF](https://huggingface.co/mudler/KAT-Coder-V2.5-Dev-APEX-GGUF) — mudler
-- [llama.cpp MoE hybrid inference](https://github.com/ggerganov/llama.cpp) — ggml-org
-- [MoE offloading in llama.cpp](https://github.com/ggerganov/llama.cpp/discussions) — community docs
+- [TurboQuant: KV Cache Compression](https://openreview.net/forum?id=turboquant2026): Google Research, ICLR 2026
+- [TurboQuant llama.cpp fork](https://github.com/TheTom/llama-cpp-turboquant): TheTom
+- [KAT-Coder V2.5 Dev](https://huggingface.co/Kwaipilot/KAT-Coder-V2.5-Dev): Kwaipilot/Kuaishou
+- [KAT-Coder V2.5 Dev APEX GGUF](https://huggingface.co/mudler/KAT-Coder-V2.5-Dev-APEX-GGUF): mudler
+- [llama.cpp MoE hybrid inference](https://github.com/ggerganov/llama.cpp): ggml-org
+- [MoE offloading in llama.cpp](https://github.com/ggerganov/llama.cpp/discussions): community docs
 
 ---
 
-Built together using GPT-5.6 — Luna ($2.93) and DeepSeek V4 Pro ($0.15) in OpenCode.
+Built using GPT-5.6 Luna ($2.93) and DeepSeek V4 Pro ($0.15) in OpenCode.
