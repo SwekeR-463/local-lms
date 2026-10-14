@@ -267,5 +267,5 @@ record_log() {
     local message="$*"
     local log_file="${PROJECT_DIR}/log.md"
     [[ -f "${log_file}" ]] || return 0
-    printf '\n- `%s` — %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')" "${message}" >>"${log_file}"
+    printf '\n- `%s`: %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')" "${message}" >>"${log_file}"
 }

@@ -255,7 +255,7 @@ Add `scripts/validate.sh` with three test levels:
 3. `--preferred`: test near-`PREFERRED_CONTEXT`; report unavailable rather than failing the whole run when the selected configuration is 64k.
 4. `--quality`: same prompts across the baseline and selected KV configurations; detect empty output, malformed tool/chat delimiters, repetition, and obvious corruption.
 
-Validation must report “not tested” when it cannot create the requested token count. Do not report a 131k success based only on `--ctx-size 131072` appearing in the command line.
+Validation must report "not tested" when it cannot create the requested token count. Do not report a 131k success based only on `--ctx-size 131072` appearing in the command line.
 
 ## Stop conditions and expected outcome
 

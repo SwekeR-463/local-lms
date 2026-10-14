@@ -79,10 +79,10 @@ MODEL_MMPROJ_FILE="mmproj-my-model.gguf"
 
 Later files override earlier files:
 
-1. `config/default.env` — portable runtime defaults
-2. `config/models/<id>.env` — model metadata and context targets
-3. `config/runtime.env` — generated llama.cpp TurboQuant build path
-4. `config/local/<id>.env` — generated machine-specific tuning winner
+1. `config/default.env`: portable runtime defaults
+2. `config/models/<id>.env`: model metadata and context targets
+3. `config/runtime.env`: generated llama.cpp TurboQuant build path
+4. `config/local/<id>.env`: generated machine-specific tuning winner
 
 Models are stored under ignored `models/`. Generated runs are stored under `results/` and include the model ID.
 
@@ -192,7 +192,7 @@ It is the fastest large model measured in this workbench:
 | 65,536 | 68.74 tok/s | **49.07 tok/s** | 16.96 GiB |
 | 131,072 | 151.50 tok/s | **32.24 tok/s** | 18.00 GiB |
 
-RSS includes mmap-backed pages and is not entirely private physical memory. For comparison, the dense Qwen3.8 27B Q3 models generate at 14–15 tok/s on the same machine.
+RSS includes mmap-backed pages and is not entirely private physical memory. For comparison, the dense Qwen3.8 27B Q3 models generate at 14-15 tok/s on the same machine.
 
 ![Ornith 1.5 35B Compact generation throughput versus other local models](results/plots/ornith15_35b_generation.png)
 
@@ -259,7 +259,7 @@ Qwen3.6 27B `UD-Q2_K_XL` baseline and MTP GGUFs were tested at 65,536 context us
 
 | Mode | Generation | RSS | Draft acceptance |
 |---|---:|---:|---:|
-| Baseline | 10.43 tok/s | 15.95 GiB | — |
+| Baseline | 10.43 tok/s | 15.95 GiB | n/a |
 | MTP | **10.93 tok/s** | 15.61 GiB | 93.9% |
 
 ![Qwen3.6 Q2 baseline and MTP throughput](results/plots/qwen36_q2_mtp.png)
@@ -272,7 +272,7 @@ The same target was also tested with Alittlehammmer's recommended Q8_0 DFlash dr
 
 | Mode | Generation | RSS | Draft acceptance |
 |---|---:|---:|---:|
-| Paired baseline | 9.54 tok/s | 15.95 GiB | — |
+| Paired baseline | 9.54 tok/s | 15.95 GiB | n/a |
 | DFlash Q8_0 | **10.71 tok/s** | 18.96 GiB | 91.9% |
 
 ![Qwen3.6 Q2 baseline and DFlash throughput](results/plots/qwen36_q2_dflash.png)
@@ -285,7 +285,7 @@ Muse Glimmer 30B `UD-Q2_K_XL` was tested on the Mac at 65,536 configured context
 
 | Mode | Generation | RSS | Draft acceptance |
 |---|---:|---:|---:|
-| Baseline | 11.42 tok/s | 12.69 GiB | — |
+| Baseline | 11.42 tok/s | 12.69 GiB | n/a |
 | DFlash | **13.07 tok/s** | 14.52 GiB | 87.5% |
 
 ![Muse Glimmer DFlash throughput and memory](results/plots/muse_glimmer_dflash.png)
