@@ -17,6 +17,7 @@ The [README](../README.md) is the entry point: quick start, configuration order,
 | [Qwen3.6 27B Q2](models/qwen3.6-27b-q2.md) | `qwen36-27b-q2`, `qwen36-27b-q2-mtp`, `qwen36-27b-q2-dflash` |
 | [Muse Glimmer](models/muse-glimmer.md) | `muse-glimmer`, `muse-glimmer-dflash` |
 | [BTL-4 Compact](models/btl-4-compact.md) | `btl-4-compact` |
+| [Gemopus 4 26B](models/gemopus-4-26b.md) | `gemopus-4-26b` |
 
 ## Studies
 
