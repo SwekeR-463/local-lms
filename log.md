@@ -1038,3 +1038,21 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-10-17 13:42:44 IST`: CPU MoE sweep completed; per-context winners saved at results/cpu-moe-kat-coder-summary.json
 
 - `2026-10-17 14:04:10 IST`: gemopus-4-26b benchmark day: smoke tg 24.6 tok/s, short-python 5/6, 131k deep 307/11; kat-coder re-downloaded and tested same protocol (moe=36 due to tern VRAM): smoke 20.1, suite 4/6, deep 414/11
+
+- `2026-10-17 14:05:47 IST`: preflight completed; report saved at results/preflight-20261017-140546.txt
+
+- `2026-10-17 14:06:03 IST`: gemopus-4-26b: server started with PID 262359; log results/server-20261017-140547.log
+
+- `2026-10-17 14:36:50 IST`: stopped project server PID 262359
+
+- `2026-10-17 14:36:51 IST`: preflight completed; report saved at results/preflight-20261017-143650.txt
+
+- `2026-10-17 14:37:04 IST`: kat-coder: server started with PID 298775; log results/server-20261017-143651.log
+
+- `2026-10-17 14:43:26 IST`: stopped project server PID 298775
+
+- `2026-10-17 14:48:33 IST`: preflight completed; report saved at results/preflight-20261017-144832.txt
+
+- `2026-10-17 14:48:47 IST`: kat-coder: server started with PID 315828; log results/server-20261017-144833.log
+
+- `2026-10-17 14:49:37 IST`: stopped project server PID 315828
