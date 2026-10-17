@@ -104,12 +104,14 @@ else
 fi
 
 [[ -z "${AUTOTUNE_KV_PAIRS:-}" ]] || read -r -a kv_pairs <<<"${AUTOTUNE_KV_PAIRS}"
+[[ -z "${AUTOTUNE_CPU_MOE_VALUES:-}" ]] || read -r -a cpu_moe_values <<<"${AUTOTUNE_CPU_MOE_VALUES}"
 [[ -z "${AUTOTUNE_BATCH_VALUES:-}" ]] || read -r -a batch_values <<<"${AUTOTUNE_BATCH_VALUES}"
 [[ -z "${AUTOTUNE_UBATCH_VALUES:-}" ]] || read -r -a ubatch_values <<<"${AUTOTUNE_UBATCH_VALUES}"
 
 if ((CPU_MOE_SWEEP)); then
-    cpu_moe_values=(0 8 16 24 32 40)
-    kv_pairs=("${CACHE_TYPE_K:-q8_0},${CACHE_TYPE_V:-$(default_cache_v)}")
+    # shellcheck disable=SC2206 # word splitting is the point: AUTOTUNE_CPU_MOE_VALUES is space-separated
+    cpu_moe_values=(${AUTOTUNE_CPU_MOE_VALUES:-0 8 16 24 32 40})
+    [[ -n "${AUTOTUNE_KV_PAIRS:-}" ]] || kv_pairs=("${CACHE_TYPE_K:-q8_0},${CACHE_TYPE_V:-$(default_cache_v)}")
     batch_values=("${BATCH_SIZE:-$(default_batch_size)}")
     ubatch_values=("${UBATCH_SIZE:-$(default_batch_size)}")
 fi
@@ -156,8 +158,11 @@ candidate_args() {
 }
 
 wait_ready() {
-    local deadline=$((SECONDS + 90))
+    local timeout="${1:-90}"
+    local pid="${2:-}"
+    local deadline=$((SECONDS + timeout))
     while ((SECONDS < deadline)); do
+        if [[ -n "${pid}" ]] && ! kill -0 "${pid}" 2>/dev/null; then return 1; fi
         if curl --fail --silent "http://${HOST}:${PORT}/health" >/dev/null 2>&1; then return 0; fi
         sleep 1
     done
@@ -166,7 +171,12 @@ wait_ready() {
 
 make_prompt() {
     local tokens="$1"
-    local chars=$((tokens * 4))
+    # Under-fill the requested window: --jinja adds BOS and turn markers on
+    # top of the counted tokens and 4 chars/token is a rough estimate, so a
+    # 5% margin keeps the probe request inside the configured context for any
+    # tokenizer without meaningfully changing the measured throughput.
+    local safe_tokens=$((tokens - tokens / 20))
+    local chars=$((safe_tokens * 4))
     head -c "${chars}" < <(yes 'function main() { return "context benchmark"; } // ')
 }
 

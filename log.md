@@ -994,3 +994,47 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Aggregate (tracked): `results/131k-ngram-speculation-qwen38-27b-gsq-rco-iq3.json`; raw per-request benchmark and suite outputs remain untracked under `results/`.
 
 - `2026-10-13 08:46 IST`: documentation cleanup at user request: removed em dashes and stock phrasing from README.md, learn.md, and plan.md; this file's date separator and the `record_log` helper in `scripts/lib/common.sh` now use a colon.
+
+- `2026-10-17 10:29:31 IST`: llama.cpp TurboQuant build completed; server recorded in config/runtime.env
+
+- `2026-10-17 10:30:10 IST`: preflight completed; report saved at results/preflight-20261017-103010.txt
+
+- `2026-10-17 10:50:00 IST`: gemopus-4-26b: model resolver selected gemopus-4-26B-A4B-APEX-I-Mini.gguf (12984460192 bytes)
+
+- `2026-10-17 10:51:47 IST`: preflight completed; report saved at results/preflight-20261017-105147.txt
+
+- `2026-10-17 10:52:02 IST`: gemopus-4-26b: server started with PID 108582; log results/server-20261017-105147.log
+
+- `2026-10-17 10:55:24 IST`: stopped project server PID 108582
+
+- `2026-10-17 11:05:00 IST`: autotune completed without a winner; see results/cpu-moe-gemopus-4-26b-summary.json
+
+- `2026-10-17 11:29:18 IST`: CPU MoE sweep rebuilt from candidate artifacts after a shell/file-edit race dropped the summary; winner n-cpu-moe=26 at 65536 tokens (q8_0/turbo4), tg 15 tok/s
+
+- `2026-10-17 13:02:19 IST`: kat-coder: model resolver selected KAT-Coder-V2.5-Dev-APEX-I-Mini.gguf (13467211136 bytes)
+
+- `2026-10-17 13:16:03 IST`: CPU MoE sweep completed; per-context winners saved at results/cpu-moe-gemopus-4-26b-summary.json
+
+- `2026-10-17 13:29:21 IST`: preflight completed; report saved at results/preflight-20261017-132920.txt
+
+- `2026-10-17 13:29:35 IST`: gemopus-4-26b: server started with PID 214057; log results/server-20261017-132921.log
+
+- `2026-10-17 13:30:13 IST`: stopped project server PID 214057
+
+- `2026-10-17 13:30:19 IST`: preflight completed; report saved at results/preflight-20261017-133018.txt
+
+- `2026-10-17 13:30:29 IST`: gemopus-4-26b: server started with PID 215576; log results/server-20261017-133019.log
+
+- `2026-10-17 13:33:20 IST`: stopped project server PID 215576
+
+- `2026-10-17 13:33:21 IST`: preflight completed; report saved at results/preflight-20261017-133320.txt
+
+- `2026-10-17 13:34:07 IST`: preflight completed; report saved at results/preflight-20261017-133406.txt
+
+- `2026-10-17 13:34:19 IST`: kat-coder: server started with PID 220751; log results/server-20261017-133407.log
+
+- `2026-10-17 13:37:41 IST`: stopped project server PID 220751
+
+- `2026-10-17 13:42:44 IST`: CPU MoE sweep completed; per-context winners saved at results/cpu-moe-kat-coder-summary.json
+
+- `2026-10-17 14:04:10 IST`: gemopus-4-26b benchmark day: smoke tg 24.6 tok/s, short-python 5/6, 131k deep 307/11; kat-coder re-downloaded and tested same protocol (moe=36 due to tern VRAM): smoke 20.1, suite 4/6, deep 414/11
