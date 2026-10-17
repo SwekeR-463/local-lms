@@ -1008,3 +1008,5 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - `2026-10-17 10:55:24 IST`: stopped project server PID 108582
 
 - `2026-10-17 11:05:00 IST`: autotune completed without a winner; see results/cpu-moe-gemopus-4-26b-summary.json
+
+- `2026-10-17 11:29:18 IST`: CPU MoE sweep rebuilt from candidate artifacts after a shell/file-edit race dropped the summary; winner n-cpu-moe=26 at 65536 tokens (q8_0/turbo4), tg 15 tok/s
