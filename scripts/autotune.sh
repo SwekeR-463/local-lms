@@ -39,7 +39,10 @@ done
 if [[ "${DRY_RUN}" == 1 ]]; then
     # Dry run only prints the candidate matrix, so tolerate a host without the
     # built binary or the downloaded model (path resolution would demand them).
-    SERVER="$(resolve_server_bin 2>/dev/null || printf 'llama-server-not-built')"
+    if ! SERVER="$(resolve_server_bin 2>/dev/null)"; then
+        SERVER="llama-server-not-built"
+        warn "dry run: server binary missing; emitting placeholder path"
+    fi
     if ! MODEL="$(resolve_model_path 2>/dev/null)"; then
         MODEL="MODEL-PATH-MISSING"
         warn "dry run: model file missing for ${MODEL_ID}; emitting placeholder path"
