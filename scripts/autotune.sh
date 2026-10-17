@@ -104,6 +104,7 @@ else
 fi
 
 [[ -z "${AUTOTUNE_KV_PAIRS:-}" ]] || read -r -a kv_pairs <<<"${AUTOTUNE_KV_PAIRS}"
+[[ -z "${AUTOTUNE_CPU_MOE_VALUES:-}" ]] || read -r -a cpu_moe_values <<<"${AUTOTUNE_CPU_MOE_VALUES}"
 [[ -z "${AUTOTUNE_BATCH_VALUES:-}" ]] || read -r -a batch_values <<<"${AUTOTUNE_BATCH_VALUES}"
 [[ -z "${AUTOTUNE_UBATCH_VALUES:-}" ]] || read -r -a ubatch_values <<<"${AUTOTUNE_UBATCH_VALUES}"
 
