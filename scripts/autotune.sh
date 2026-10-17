@@ -111,7 +111,7 @@ fi
 if ((CPU_MOE_SWEEP)); then
     # shellcheck disable=SC2206 # word splitting is the point: AUTOTUNE_CPU_MOE_VALUES is space-separated
     cpu_moe_values=(${AUTOTUNE_CPU_MOE_VALUES:-0 8 16 24 32 40})
-    kv_pairs=("${CACHE_TYPE_K:-q8_0},${CACHE_TYPE_V:-$(default_cache_v)}")
+    [[ -n "${AUTOTUNE_KV_PAIRS:-}" ]] || kv_pairs=("${CACHE_TYPE_K:-q8_0},${CACHE_TYPE_V:-$(default_cache_v)}")
     batch_values=("${BATCH_SIZE:-$(default_batch_size)}")
     ubatch_values=("${UBATCH_SIZE:-$(default_batch_size)}")
 fi
