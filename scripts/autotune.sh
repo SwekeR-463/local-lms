@@ -158,8 +158,11 @@ candidate_args() {
 }
 
 wait_ready() {
-    local deadline=$((SECONDS + 90))
+    local timeout="${1:-90}"
+    local pid="${2:-}"
+    local deadline=$((SECONDS + timeout))
     while ((SECONDS < deadline)); do
+        if [[ -n "${pid}" ]] && ! kill -0 "${pid}" 2>/dev/null; then return 1; fi
         if curl --fail --silent "http://${HOST}:${PORT}/health" >/dev/null 2>&1; then return 0; fi
         sleep 1
     done
@@ -168,7 +171,12 @@ wait_ready() {
 
 make_prompt() {
     local tokens="$1"
-    local chars=$((tokens * 4))
+    # Under-fill the requested window: --jinja adds BOS and turn markers on
+    # top of the counted tokens and 4 chars/token is a rough estimate, so a
+    # 5% margin keeps the probe request inside the configured context for any
+    # tokenizer without meaningfully changing the measured throughput.
+    local safe_tokens=$((tokens - tokens / 20))
+    local chars=$((safe_tokens * 4))
     head -c "${chars}" < <(yes 'function main() { return "context benchmark"; } // ')
 }
 

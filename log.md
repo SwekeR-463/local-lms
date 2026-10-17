@@ -994,3 +994,17 @@ Two complete sweeps tested `n-cpu-moe=0/8/16/24/32/40` with fixed `q8_0/turbo3`,
 - Aggregate (tracked): `results/131k-ngram-speculation-qwen38-27b-gsq-rco-iq3.json`; raw per-request benchmark and suite outputs remain untracked under `results/`.
 
 - `2026-10-13 08:46 IST`: documentation cleanup at user request: removed em dashes and stock phrasing from README.md, learn.md, and plan.md; this file's date separator and the `record_log` helper in `scripts/lib/common.sh` now use a colon.
+
+- `2026-10-17 10:29:31 IST`: llama.cpp TurboQuant build completed; server recorded in config/runtime.env
+
+- `2026-10-17 10:30:10 IST`: preflight completed; report saved at results/preflight-20261017-103010.txt
+
+- `2026-10-17 10:50:00 IST`: gemopus-4-26b: model resolver selected gemopus-4-26B-A4B-APEX-I-Mini.gguf (12984460192 bytes)
+
+- `2026-10-17 10:51:47 IST`: preflight completed; report saved at results/preflight-20261017-105147.txt
+
+- `2026-10-17 10:52:02 IST`: gemopus-4-26b: server started with PID 108582; log results/server-20261017-105147.log
+
+- `2026-10-17 10:55:24 IST`: stopped project server PID 108582
+
+- `2026-10-17 11:05:00 IST`: autotune completed without a winner; see results/cpu-moe-gemopus-4-26b-summary.json
