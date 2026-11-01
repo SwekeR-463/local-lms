@@ -70,6 +70,8 @@ Later files override earlier files:
 3. `config/runtime.env`: generated llama.cpp TurboQuant build path
 4. `config/local/<id>.env`: generated machine-specific tuning winner
 
+The llama.cpp TurboQuant fork is pinned by `TURBOQUANT_COMMIT` in `config/default.env`; `scripts/build.sh` checks out exactly that commit (an empty value tracks the branch tip) and result JSON records it as `llama_cpp_commit`. To upgrade, change the pin deliberately and rebuild.
+
 Models are stored under ignored `models/`. Generated runs are stored under `results/` and include the model ID.
 
 ## Use a model with Pi

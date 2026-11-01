@@ -24,12 +24,41 @@ BUILD_DIR="$(project_path "${BUILD_DIR}")"
 REPO_URL="${TURBOQUANT_REPO:-https://github.com/TheTom/llama-cpp-turboquant.git}"
 REPO_BRANCH="${TURBOQUANT_BRANCH:-feature/turboquant-kv-cache}"
 
+# TURBOQUANT_COMMIT pins the fork to one commit so every device builds the same
+# source. Set it empty (TURBOQUANT_COMMIT= scripts/build.sh) to track the branch tip.
+TURBOQUANT_COMMIT="${TURBOQUANT_COMMIT-}"
+
+fetch_commit() {
+    # GitHub serves any reachable SHA; fall back to the full branch if a host refuses.
+    git -C "${SOURCE_DIR}" fetch --quiet --depth 1 origin "${TURBOQUANT_COMMIT}" 2>/dev/null \
+        || git -C "${SOURCE_DIR}" fetch --quiet origin "${REPO_BRANCH}"
+}
+
 mkdir -p "$(dirname "${SOURCE_DIR}")"
-if [[ ! -d "${SOURCE_DIR}/.git" ]]; then
-    log "Cloning llama.cpp TurboQuant (${REPO_BRANCH})"
-    git clone --branch "${REPO_BRANCH}" --depth 1 "${REPO_URL}" "${SOURCE_DIR}"
+if [[ -z "${TURBOQUANT_COMMIT}" ]]; then
+    warn "TURBOQUANT_COMMIT is empty: building the ${REPO_BRANCH} tip, which is not reproducible"
+    if [[ ! -d "${SOURCE_DIR}/.git" ]]; then
+        log "Cloning llama.cpp TurboQuant (${REPO_BRANCH})"
+        git clone --branch "${REPO_BRANCH}" --depth 1 "${REPO_URL}" "${SOURCE_DIR}"
+    else
+        log "Using existing TurboQuant source: ${SOURCE_DIR}"
+    fi
 else
-    log "Using existing TurboQuant source: ${SOURCE_DIR}"
+    if [[ ! -d "${SOURCE_DIR}/.git" ]]; then
+        log "Fetching llama.cpp TurboQuant at pinned commit ${TURBOQUANT_COMMIT:0:12}"
+        git init --quiet "${SOURCE_DIR}"
+        git -C "${SOURCE_DIR}" remote add origin "${REPO_URL}"
+    fi
+    if [[ "$(git -C "${SOURCE_DIR}" rev-parse HEAD 2>/dev/null || true)" != "${TURBOQUANT_COMMIT}" ]]; then
+        [[ -z "$(git -C "${SOURCE_DIR}" status --porcelain --untracked-files=no)" ]] \
+            || die "${SOURCE_DIR} has local changes; commit or discard them before pinning to ${TURBOQUANT_COMMIT:0:12}"
+        log "Checking out pinned commit ${TURBOQUANT_COMMIT:0:12}"
+        fetch_commit
+        git -C "${SOURCE_DIR}" checkout --quiet --detach "${TURBOQUANT_COMMIT}" \
+            || die "pinned commit ${TURBOQUANT_COMMIT} not found in ${REPO_URL}"
+    else
+        log "TurboQuant source already at pinned commit ${TURBOQUANT_COMMIT:0:12}"
+    fi
 fi
 
 if is_macos; then

@@ -290,8 +290,8 @@ if ((DRY_RUN)); then
     exit 0
 fi
 
-printf '%s\n' "${results[@]}" | jq -s --arg model_id "${MODEL_ID}" --arg model_name "${MODEL_NAME:-${MODEL_ID}}" --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg run_root "${RUN_ROOT}" --arg preferred "${PREFERRED_CONTEXT}" --arg minimum "${MIN_ACCEPTED_CONTEXT}" \
-    '{model_id:$model_id,model_name:$model_name,model_file:$model_file,run_root:$run_root,preferred_context:($preferred|tonumber),minimum_accepted_context:($minimum|tonumber),candidates:.}' >"${SUMMARY}"
+printf '%s\n' "${results[@]}" | jq -s --arg model_id "${MODEL_ID}" --arg model_name "${MODEL_NAME:-${MODEL_ID}}" --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg run_root "${RUN_ROOT}" --arg llama_cpp_commit "${BUILD_COMMIT:-}" --arg preferred "${PREFERRED_CONTEXT}" --arg minimum "${MIN_ACCEPTED_CONTEXT}" \
+    '{model_id:$model_id,model_name:$model_name,model_file:$model_file,llama_cpp_commit:$llama_cpp_commit,run_root:$run_root,preferred_context:($preferred|tonumber),minimum_accepted_context:($minimum|tonumber),candidates:.}' >"${SUMMARY}"
 
 if ((CPU_MOE_SWEEP)); then
     jq '. + {mode:"cpu-moe-sweep",winners_by_context:([.candidates[] | select(.accepted == true)] | group_by(.context) | map(sort_by(.generation_tokens_per_second) | last))}' \
