@@ -94,10 +94,10 @@ PY
 done
 
 SUMMARY="${OUTPUT_DIR}/summary.json"
-jq -s --arg model_id "${MODEL_ID}" --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg server_model "${SERVER_MODEL}" \
+jq -s --arg model_id "${MODEL_ID}" --arg model_file "${MODEL_FILE:-${MODEL_PATH:-}}" --arg server_model "${SERVER_MODEL}" --arg llama_cpp_commit "${BUILD_COMMIT:-}" \
     --arg suite_id "short-python-v1" --arg run_at "$(iso_timestamp)" --arg effort "${REASONING_EFFORT}" --argjson max_tokens "${MAX_TOKENS}" \
     --arg sampling_mode "${SAMPLING}" --argjson sampling "${SAMPLING_JSON}" \
-    '{model_id:$model_id,model_file:$model_file,server_model:$server_model,suite_id:$suite_id,run_at:$run_at,sampling_mode:$sampling_mode,sampling:$sampling,settings:{temperature:0,seed:42,max_tokens:$max_tokens,reasoning_effort:$effort},total:length,passed:(map(select(.passed))|length),tasks:.}' \
+    '{model_id:$model_id,model_file:$model_file,server_model:$server_model,llama_cpp_commit:$llama_cpp_commit,suite_id:$suite_id,run_at:$run_at,sampling_mode:$sampling_mode,sampling:$sampling,settings:{temperature:0,seed:42,max_tokens:$max_tokens,reasoning_effort:$effort},total:length,passed:(map(select(.passed))|length),tasks:.}' \
     "${OUTCOMES}" >"${SUMMARY}"
 log "Short Python benchmark saved: ${SUMMARY}"
 jq '{model_id,passed,total}' "${SUMMARY}"
